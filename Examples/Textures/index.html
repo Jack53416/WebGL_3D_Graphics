@@ -12,6 +12,9 @@ and specifies the color-->
     varying vec2 vTextureCoord;
     uniform sampler2D uSampler;
     void main(void) {
+      //Interpotated values of a texture position are picked by uSampler variable, which
+      //is the shader's way of representin a texture. All the shader does is that it
+      //gets appropriate color values from the texture file
         gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
     }
 </script>
@@ -30,6 +33,9 @@ and specifies the color-->
     //and pushes out the result as the final vertex position
     void main(void) {
         gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+        //accpets texture cooridanets as varting variable and passes it straight to
+        //fragment shader, than shader interpolates texture linearly between vertices specified
+        //earlier
         vTextureCoord = aTextureCoord;
     }
 </script>

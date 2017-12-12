@@ -77,6 +77,8 @@ function initBuffers(gl) {
 
   cubeVertexTextureCoordBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer);
+	//specifies where given vertex lies in the texture, with texture dimensions
+	//being 1.0 x 1.0
   var textureCoords = [
     // Front face
     0.0, 0.0,
@@ -157,8 +159,10 @@ function drawScene(gl, shaderProgram, neheTexture) {
   gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer);
   gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, cubeVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
+	// sets the active texture to one that was loaded before
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, neheTexture);
+	//passes the value 0 to the shader uniform variable
   gl.uniform1i(shaderProgram.samplerUniform, 0);
 
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
@@ -196,13 +200,26 @@ function initTexture(gl){
   neheTexture.image.src = 'nehe.gif';
   return neheTexture;
 }
-
+/**
+ * Callback, called when image ends loading process
+ * @param  {glTexture} texture 	glTexture object
+ * @return {None}         		 	None
+ */
 function handleLoadedTexture(texture){
+	//sets the current texture on which the operations are performed
   gl.bindTexture(gl.TEXTURE_2D, texture);
+	//All images need to flipped verticaly as in GIF format coordinates increase
+	//as one moves downwards on the vertical axis, horizontal stays the same
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+	//Uploads image to the texture's space on the graphic card {kind of image, detail level,
+	//format of storage on the card x2, datatype used to store RGB, image itself}
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+	//specifies scaling parameters of the texture, how to scale-uo, nearest
+	//use original image as it is
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+	//and how to scale-down
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+	//sets the current texture to null, for cleanup purposes
   gl.bindTexture(gl.TEXTURE_2D, null);
 }
 
