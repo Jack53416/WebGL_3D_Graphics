@@ -1,0 +1,52 @@
+<html>
+
+<head>
+<title>Learning WebGL &mdash; lesson 1</title>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+
+<script type="text/javascript" src="../../Libs/gl-matrix-min.js"></script>
+<!-- Written in GLSL, specifies the precision of float used for calculations
+and specifies the color-->
+<script id="shader-fs" type="x-shader/x-fragment">
+    precision mediump float;
+    varying vec2 vTextureCoord;
+    uniform sampler2D uSampler;
+    void main(void) {
+        gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+    }
+</script>
+<!-- Vertex shader,  -->
+<script id="shader-vs" type="x-shader/x-vertex">
+    attribute vec3 aVertexPosition;
+    attribute vec2 aTextureCoord;
+
+    //Uniform variables that can be accessed outside of the shader
+    uniform mat4 uMVMatrix;
+    uniform mat4 uPMatrix;
+
+    varying vec2 vTextureCoord;
+    //Shader is called for every vertex passed to it by aVertexPosition, by vertexPositionAttribute
+    //in the drawScen. It simply multiplies its postion by projection and model view matrices
+    //and pushes out the result as the final vertex position
+    void main(void) {
+        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+        vTextureCoord = aTextureCoord;
+    }
+</script>
+
+<script type = "text/javascript" src = "init.js"></script>
+<script type="text/javascript" src="main.js"></script>
+
+</head>
+
+
+<body onload="webGLStart();">
+    <a href="http://learningwebgl.com/blog/?p=28">&lt;&lt; Back to Lesson 1</a><br />
+
+    <canvas id="lesson01-canvas" style="border: none;" width="1000" height="600"></canvas>
+
+    <br/>
+    <a href="http://learningwebgl.com/blog/?p=28">&lt;&lt; Back to Lesson 1</a><br />
+</body>
+
+</html>
