@@ -14,13 +14,14 @@
         varying vec3 vLightWeighting;
 
         uniform sampler2D uSampler;
+        uniform float uAplha;
         void main(void) {
           //Interpotated values of a texture position are picked by uSampler variable, which
           //is the shader's way of representin a texture. All the shader does is that it
           //gets appropriate color values from the texture file
           vec4 textureColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
           // color gets multiplied by adjustment vector of light rgb weights
-          gl_FragColor = vec4(textureColor.rgb * vLightWeighting, textureColor.a);
+          gl_FragColor = vec4(textureColor.rgb * vLightWeighting, textureColor.a * uAplha);
         }
     </script>
     <!-- Vertex shader,  -->
@@ -60,6 +61,9 @@
             }
             else{
               vec3 transformedNormal = uNMatrix * aVertexNormal;
+              //The amount of light that will diffusely reflect is proportional to a cosine betweet
+              //the normal vector and light direction vector, which for vectos of length of one is simply
+              //a dot product
               float directionalLightWeighting = max(dot(transformedNormal, uLightingDirection), 0.0);
               vLightWeighting = uAmbientColor + uDirectionalColor * directionalLightWeighting;
             }
@@ -72,9 +76,10 @@
 
 
   <body>
-    <a href="http://learningwebgl.com/blog/?p=28">&lt;&lt; Back to Lesson 1</a><br />
     <canvas id="lesson01-canvas" style="border: none;" width="1000" height="600"></canvas>
     <br/>
+    <input type="checkbox" id="blending" checked/> Use blending <br/>
+    Alpha: <input type="text" id= "alpha" value="0.5"/> <br/>
     <input type="checkbox" id="lighting" checked /> Use lighting<br/>
     <table style="border: 0; padding: 10px;">
       <tr>

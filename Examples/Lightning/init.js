@@ -122,6 +122,7 @@ export function initShaders(gl) {
     shaderProgram.ambientColorUniform = gl.getUniformLocation(shaderProgram, "uAmbientColor");
     shaderProgram.lightingDirectionUniform = gl.getUniformLocation(shaderProgram, "uLightingDirection");
     shaderProgram.directionalColorUniform = gl.getUniformLocation(shaderProgram, "uDirectionalColor");
+    shaderProgram.alphaUniform = gl.getUniformLocation(shaderProgram, "uAplha");
 
     return shaderProgram;
 }

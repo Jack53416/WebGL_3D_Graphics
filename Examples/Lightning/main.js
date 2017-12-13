@@ -204,6 +204,31 @@ function drawScene(gl, shaderProgram, crateTexture) {
   mat4.rotate(mvMatrix, mvMatrix, glMatrix.toRadian(yRot), [0, 1, 0]);
   mat4.rotate(mvMatrix, mvMatrix, glMatrix.toRadian(zRot), [0, 0, 1]);
 
+	var blending = document.getElementById("blending").checked;
+	if(blending){
+		var alpha = parseFloat(document.getElementById("alpha").value);
+		//{sourceFragment factor, destinationFragment factor}
+		//sourceFragment is the fragment which is drawn right now, destinationFragment
+		//is a fragment that is already in frame buffer. SRC_ALPHA means simply source fragmentShader
+		//alpha value. Final color is expressed as R = Rs * Sr + Rd * Dr; s-source, d - destination, D- destination factor
+		//S - source factor
+		gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+		gl.enable(gl.BLEND);
+		//depth testing is disabled in order to no to draw elements in a specific border
+		//For elements in order to be displayed correctly, they should be drawn in a specific order
+		//Fully opaque primitives need to be rendered first, followed by partially opaque primitives in back
+		//to-front order. If you don’t render primitives in this order, the primitives, which would otherwise
+		// be visible through a partially opaque primitive, might lose the depth test entirely.
+		gl.disable(gl.DEPTH_TEST);
+		gl.uniform1f(shaderProgram.alphaUniform, alpha);
+	}
+	else{
+		gl.enable(gl.DEPTH_TEST);
+		gl.disable(gl.BLEND);
+		gl.uniform1f(shaderProgram.alphaUniform, 1.0);
+	}
+
+
   gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
   gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, cubeVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -350,7 +375,7 @@ function handleKeys(){
   gl = init.initGL(canvas);
   shaderProgram = init.initShaders(gl);
   initBuffers(gl);
-  crateTexture = initTexture(gl, 'crate.gif');
+  crateTexture = initTexture(gl, 'glass.gif');
   // sets clear color of the canvas
   gl.clearColor(0.0, 0.0, 0.0, 0.1);
   // enables depth testing, objects behind anorher object won't be visible
