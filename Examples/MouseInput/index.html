@@ -1,0 +1,108 @@
+<html>
+
+  <head>
+    <title>Learning WebGL &mdash; lesson 1</title>
+
+    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+    <script type="text/javascript" src="../../Libs/webgl-debug.js"></script>
+    <script type="text/javascript" src="../../Libs/gl-matrix-min.js"></script>
+    <!-- Written in GLSL, specifies the precision of float used for calculations
+    and specifies the color-->
+    <script id="shader-fs" type="x-shader/x-fragment">
+        precision mediump float;
+        varying vec2 vTextureCoord;
+        varying vec3 vLightWeighting;
+
+        uniform sampler2D uSampler;
+        void main(void) {
+          //Interpotated values of a texture position are picked by uSampler variable, which
+          //is the shader's way of representin a texture. All the shader does is that it
+          //gets appropriate color values from the texture file
+          vec4 textureColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+          // color gets multiplied by adjustment vector of light rgb weights
+          gl_FragColor = vec4(textureColor.rgb * vLightWeighting, textureColor.a);
+        }
+    </script>
+    <!-- Vertex shader,  -->
+    <script id="shader-vs" type="x-shader/x-vertex">
+        attribute vec3 aVertexPosition;
+        attribute vec2 aTextureCoord;
+        //Normal vector of vertex
+        attribute vec3 aVertexNormal;
+
+        //Uniform variables that can be accessed outside of the shader
+        uniform mat4 uMVMatrix;
+        uniform mat4 uPMatrix;
+        // normal matrix
+        uniform mat3 uNMatrix;
+
+        uniform vec3 uAmbientColor;
+
+        uniform vec3 uLightingDirection;
+        uniform vec3 uDirectionalColor;
+
+        uniform bool uUseLighting;
+
+        varying vec2 vTextureCoord;
+        varying vec3 vLightWeighting;
+        //Shader is called for every vertex passed to it by aVertexPosition, by vertexPositionAttribute
+        //in the drawScen. It simply multiplies its postion by projection and model view matrices
+        //and pushes out the result as the final vertex position
+        void main(void) {
+            gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+            //accpets texture cooridanets as varting variable and passes it straight to
+            //fragment shader, than shader interpolates texture linearly between vertices specified
+            //earlier
+            vTextureCoord = aTextureCoord;
+
+            if(!uUseLighting){
+              vLightWeighting = vec3(1.0, 1.0, 1.0);
+            }
+            else{
+              vec3 transformedNormal = uNMatrix * aVertexNormal;
+              //The amount of light that will diffusely reflect is proportional to a cosine betweet
+              //the normal vector and light direction vector, which for vectos of length of one is simply
+              //a dot product
+              float directionalLightWeighting = max(dot(transformedNormal, uLightingDirection), 0.0);
+              vLightWeighting = uAmbientColor + uDirectionalColor * directionalLightWeighting;
+            }
+        }
+    </script>
+
+    <script type = 'module' src = 'main.js'></script>
+
+  </head>
+
+
+  <body>
+    <canvas id="lesson01-canvas" style="border: none;" width="1000" height="600"></canvas>
+    <br/>
+    <input type="checkbox" id="lighting" checked /> Use lighting<br/>
+    <table style="border: 0; padding: 10px;">
+      <tr>
+        <td><b>Direction:</b>
+        <td>X: <input type="text" id="lightDirectionX" value="-0.25" />
+        <td>Y: <input type="text" id="lightDirectionY" value="-0.25" />
+        <td>Z: <input type="text" id="lightDirectionZ" value="-1.0" />
+      </tr>
+      <tr>
+        <td><b>Colour:</b>
+        <td>R: <input type="text" id="directionalR" value="0.8" />
+        <td>G: <input type="text" id="directionalG" value="0.8" />
+        <td>B: <input type="text" id="directionalB" value="0.8" />
+      </tr>
+      </table>
+
+        <h2>Ambient light:</h2>
+      <table style="border: 0; padding: 10px;">
+        <tr>
+          <td><b>Colour:</b>
+          <td>R: <input type="text" id="ambientR" value="0.2" />
+          <td>G: <input type="text" id="ambientG" value="0.2" />
+          <td>B: <input type="text" id="ambientB" value="0.2" />
+        </tr>
+    </table>
+
+  </body>
+
+</html>
