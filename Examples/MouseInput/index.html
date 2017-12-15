@@ -2,8 +2,8 @@
 
   <head>
     <title>Learning WebGL &mdash; lesson 1</title>
-
     <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+    <link rel = "stylesheet" type = "text/css" href = "style.css"/>
     <script type="text/javascript" src="../../Libs/webgl-debug.js"></script>
     <script type="text/javascript" src="../../Libs/gl-matrix-min.js"></script>
     <!-- Written in GLSL, specifies the precision of float used for calculations
@@ -75,34 +75,26 @@
 
 
   <body>
-    <canvas id="lesson01-canvas" style="border: none;" width="1000" height="600"></canvas>
-    <br/>
-    <input type="checkbox" id="lighting" checked /> Use lighting<br/>
-    <table style="border: 0; padding: 10px;">
-      <tr>
-        <td><b>Direction:</b>
-        <td>X: <input type="text" id="lightDirectionX" value="-0.25" />
-        <td>Y: <input type="text" id="lightDirectionY" value="-0.25" />
-        <td>Z: <input type="text" id="lightDirectionZ" value="-1.0" />
-      </tr>
-      <tr>
-        <td><b>Colour:</b>
-        <td>R: <input type="text" id="directionalR" value="0.8" />
-        <td>G: <input type="text" id="directionalG" value="0.8" />
-        <td>B: <input type="text" id="directionalB" value="0.8" />
-      </tr>
-      </table>
-
-        <h2>Ambient light:</h2>
-      <table style="border: 0; padding: 10px;">
-        <tr>
-          <td><b>Colour:</b>
-          <td>R: <input type="text" id="ambientR" value="0.2" />
-          <td>G: <input type="text" id="ambientG" value="0.2" />
-          <td>B: <input type="text" id="ambientB" value="0.2" />
-        </tr>
-    </table>
-
+    <div class = "flexContainer">
+      <div class = "mainContent">
+        <canvas id="lesson01-canvas"></canvas>
+      </div>
+      <div class = "sideMenu">
+        <input type="checkbox" id="lighting" checked /> Use lighting<br/>
+        <b>Direction:</b> <br/>
+        X: <input id = "lightDirectionX" type = "range" min = "-10" max = "10" value = "-0.25" step = "0.01" /> <br/>
+        Y: <input id = "lightDirectionY" type = "range" min = "-10" max = "10" value = "-0.25" step = "0.01"  /> </br>
+        Z :<input id = "lightDirectionZ" type = "range" min = "-10" max = "10" value = "-1.0" step = "0.01"  /> <br/>
+        <b>Color:</b> <br/>
+        R: <input id = "directionalR" type="range" min = "0.0" max = "5" value = "0.8" step = "0.01"  /> <br/>
+        G: <input id = "directionalG" type="range" min = "0.0" max = "5" value = "0.8" step = "0.01"  /> <br/>
+        B: <input id = "directionalB" type="range" min = "0.0" max = "5" value = "0.8" step = "0.01"  /> <br/>
+        <b>Ambient Light:</b> <br/>
+        R: <input id = "ambientR" type="range" min = "0.0" max = "2.0" value = "0.2" step = "0.01"  /> <br/>
+        G: <input id = "ambientG" type="range" min = "0.0" max = "2.0" value = "0.2" step = "0.01"  /> <br/>
+        B: <input id = "ambientB" type="range" min = "0.0" max = "2.0" value = "0.2" step = "0.01"  /> <br/>
+      </div>
+    </div>
   </body>
 
 </html>

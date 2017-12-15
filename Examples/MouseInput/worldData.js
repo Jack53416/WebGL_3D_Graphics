@@ -58,6 +58,8 @@ function initGL(canvas) {
       gl = WebGLDebugUtils.makeDebugContext(gl, throwOnGLError, logAndValidate);
       gl.viewportWidth = canvas.width;
       gl.viewportHeight = canvas.height;
+			console.log(canvas.width);
+			console.log(canvas.height);
   } catch (ex) {
     console.log(ex);
   }

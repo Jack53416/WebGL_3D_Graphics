@@ -184,6 +184,9 @@ function handleMouseMove(event){
  */
 (function webGLStart() {
   var canvas = document.getElementById("lesson01-canvas");
+  var canvasBorder = canvas.getBoundingClientRect();
+  canvas.width = canvasBorder.width;
+  canvas.height = canvasBorder.height;
 	world.initWorld(canvas);
 	initBuffers(gl);
 	initWorldObjects();
@@ -196,6 +199,15 @@ function handleMouseMove(event){
   canvas.onmousedown = handleMouseDown;
   document.onmouseup = handleMouseUp;
   document.onmousemove = handleMouseMove;
+
+  window.addEventListener("resize", function(){
+    var canvasBorder = canvas.getBoundingClientRect();
+    canvas.width = canvasBorder.width;
+    canvas.height = canvasBorder.height;
+    gl.viewportWidth = canvas.width;
+    gl.viewportHeight = canvas.height
+  });
+
 	tick();
 })();
 
