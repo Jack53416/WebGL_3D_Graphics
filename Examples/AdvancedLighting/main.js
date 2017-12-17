@@ -60,7 +60,7 @@ function drawScene() {
       shaderProgram.pointLightingLocationUniform,
       parseFloat(document.getElementById("lightPositionX").value),
       parseFloat(document.getElementById("lightPositionY").value),
-      zoom
+      parseFloat(document.getElementById("lightPositionZ").value) + zoom
     );
 
 		gl.uniform3f(
