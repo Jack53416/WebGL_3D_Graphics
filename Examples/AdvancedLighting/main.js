@@ -1,7 +1,9 @@
 import * as world from './worldData.js';
 import {gl,shaderProgram} from './worldData.js';
 import {Sphere} from './worldObjects.js';
+import {Camera} from './camera.js';
 
+var camera = new Camera();
 /**
  * Initializes gl buffers that stores positions of the vertices. Buffers are stored on
  * the graphic card
@@ -43,7 +45,7 @@ function drawScene() {
   // Initializes model-view matrix - a matrix that hold current position and rotation
   mat4.identity(world.mvMatrix);
   // moves centre of 3D space, in this case 5 into the scene(-5)
-  mat4.translate(world.mvMatrix, world.mvMatrix, [0.0, 0.0, zoom]);
+  mat4.multiply(world.mvMatrix, camera.transformMatrix, world.mvMatrix);
   gl.enable(gl.DEPTH_TEST);
 
   var lighting = document.getElementById("lighting").checked;
@@ -60,7 +62,7 @@ function drawScene() {
       shaderProgram.pointLightingLocationUniform,
       parseFloat(document.getElementById("lightPositionX").value),
       parseFloat(document.getElementById("lightPositionY").value),
-      parseFloat(document.getElementById("lightPositionZ").value) + zoom
+      parseFloat(document.getElementById("lightPositionZ").value),
     );
 
 		gl.uniform3f(
@@ -123,6 +125,9 @@ function handleLoadedTexture(texture){
 }
 
 var currentlyPressedKeys = {};
+var mouseDown = false;
+var lastMouseX = 0;
+var lastMouseY = 0;
 
 function handleKeyDown(event){
 	currentlyPressedKeys[event.keyCode] = true;
@@ -138,34 +143,68 @@ function handleKeyUp(event){
 }
 
 function handleKeys(){
-	//page up
-	if(currentlyPressedKeys[33])
-		zoom -= 0.05;
-	//page down
-	if(currentlyPressedKeys[34])
-		zoom += 0.05;
-	//left arrow
-	/*if(currentlyPressedKeys[37])
-		ySpeed -= 1;
-	//right arrow
-	if(currentlyPressedKeys[39])
-		ySpeed += 1;
-	//up arrow
-	if(currentlyPressedKeys[38])
-		tilt -=1;
-	//down arrow
-	if(currentlyPressedKeys[40])
-		tilt +=1;*/
+	//left arrow or a
+	if(currentlyPressedKeys[37] || currentlyPressedKeys[65])
+		camera.truck(-0.1);
+	//right arrow or d
+	if(currentlyPressedKeys[39] || currentlyPressedKeys[68])
+		camera.truck(+0.1);
+	//up arrow or w
+	if(currentlyPressedKeys[38] || currentlyPressedKeys[87] )
+		camera.pedestal(0.1)
+	//down arrow or s
+	if(currentlyPressedKeys[40] || currentlyPressedKeys[83])
+		camera.pedestal(-0.1);
+    //q
+  if(currentlyPressedKeys[81])
+    camera.tilt(-1.0);
+  //e
+  if(currentlyPressedKeys[69])
+    camera.tilt(1.0);
+  //z
+  if(currentlyPressedKeys[90])
+    camera.pan(-1.0);
+  //c
+  if(currentlyPressedKeys[67])
+    camera.pan(1.0);
+
 }
+
+function handleMouseDown(event){
+  mouseDown = true;
+  lastMouseX = event.clientX;
+  lastMouseY = event.clientY;
+}
+
+function handleMouseUp(event){
+  mouseDown = false;
+}
+
+function handleMouseMove(event){
+  if(!mouseDown)
+    return;
+
+  var newX = event.clientX;
+  var newY = event.clientY;
+
+  var deltaX = newX - lastMouseX;
+  var deltaY = newY - lastMouseY;
+  camera.arcCrane(deltaX / 2, deltaY / 2);
+  lastMouseX = newX;
+  lastMouseY = newY;
+}
+
 
 function MouseWheelHandler(e) {
   // cross-browser wheel delta
   var e = window.event || e; // old IE support
   var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
-  zoom += delta;
+  camera.zoom(-delta);
 
   return false;
 }
+
+
 /**
  * Calls the function to initalize webGl and shaders, start of an app
  */
@@ -200,9 +239,18 @@ function MouseWheelHandler(e) {
   // IE 6/7/8
     else canvas.attachEvent("onmousewheel", MouseWheelHandler);
 
+  canvas.onmousedown = handleMouseDown;
+  document.onmouseup = handleMouseUp;
+  document.onmousemove = handleMouseMove;
+  var cameraOptions = {
+    eye:{
+      xSlider: document.getElementById("eyeX"),
+      ySlider: document.getElementById("eyeY"),
+      zSlider: document.getElementById("eyeZ")
+    }
+  };
 	tick();
 })();
-
 function tick(){
 	if(!world.DEBUG)
 		requestAnimationFrame(tick);
