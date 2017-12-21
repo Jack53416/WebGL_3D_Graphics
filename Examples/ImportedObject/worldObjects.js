@@ -87,6 +87,7 @@ Model.prototype.bindBuffers = function(modelData){
 Model.prototype.computeMvMatrix = function(){
   mat4.translate(world.mvMatrix, world.mvMatrix, [this.posX, this.posY, this.posZ]);
   mat4.multiply(world.mvMatrix, world.mvMatrix, this.rotationMatrix);
+  mat4.translate(world.mvMatrix, world.mvMatrix, [-this.posX, -this.posY, -this.posZ]);
 }
 
 Model.prototype.draw = function(){
@@ -230,4 +231,163 @@ Sphere.prototype.computeMvMatrix = function(){
   mat4.rotate(world.mvMatrix, world.mvMatrix, glMatrix.toRadian(this.orbitAngle), [0, 1, 0]);
   mat4.translate(world.mvMatrix, world.mvMatrix, [this.posX, this.posY, this.posZ]);
   mat4.multiply(world.mvMatrix, world.mvMatrix, this.rotationMatrix);
+}
+
+
+export function Cuboid(startPoint, endPoint){
+  var options = {};
+  if(typeof arguments[2] === 'object')
+    options = arguments[2];
+
+  var center = vec3.create();
+  vec3.add(center, endPoint, startPoint);
+  vec3.scale(center, center, 0.5);
+  console.log(center);
+  options.posX = center[0];
+  options.posY = center[1];
+  options.posZ = center[2];
+  this.startPoint = startPoint;
+  this.endPoint = endPoint;
+  this.textureTile = options.textureTile || 1;
+  Model.call(this, null, options);
+  this.calculateBuffers();
+}
+
+Cuboid.prototype = Object.create(Model.prototype);
+Cuboid.prototype.constructor = Cuboid;
+
+Cuboid.prototype.calculateBuffers = function(){
+  var length = Math.abs(this.startPoint[0] - this.endPoint[0]);
+  var width = Math.abs(this.startPoint[2] - this.endPoint[2]);
+  var height = Math.abs(this.startPoint[1] - this.endPoint[1]);
+  var lengthCoeff = 1;
+  var widthCoeff = 1;
+  var heigthCoeff = 1;
+  if(length > width){
+    widthCoeff =  width / length;
+  }
+  if(length < width){
+    lengthCoeff = length / width;
+  }
+  if(height < length){
+    heigthCoeff = height / length;
+  }
+  if(height > length){
+    lengthCoeff = length / height;
+  }
+  if(height > width)
+  {
+    widthCoeff = width / height;
+  }
+  var vertexPositions = [
+    // Front face
+     this.startPoint[0], this.startPoint[1], this.startPoint[2],
+     this.endPoint[0],   this.startPoint[1], this.startPoint[2],
+     this.endPoint[0],   this.endPoint[1],   this.startPoint[2],
+     this.startPoint[0], this.endPoint[1],   this.startPoint[2],
+    // Back face
+    this.startPoint[0], this.startPoint[1], this.endPoint[2],
+    this.startPoint[0], this.endPoint[1],   this.endPoint[2],
+    this.endPoint[0],   this.endPoint[1],   this.endPoint[2],
+    this.endPoint[0],   this.startPoint[1], this.endPoint[2],
+    // Top face
+    this.startPoint[0], this.endPoint[1],  this.endPoint[2],
+    this.startPoint[0], this.endPoint[1],  this.startPoint[2],
+     this.endPoint[0],  this.endPoint[1],  this.startPoint[2],
+     this.endPoint[0],  this.endPoint[1],  this.endPoint[2],
+    // Bottom face
+    this.startPoint[0], this.startPoint[1], this.endPoint[2],
+    this.endPoint[0],   this.startPoint[1],  this.endPoint[2],
+    this.endPoint[0],   this.startPoint[1],  this.startPoint[2],
+    this.startPoint[0], this.startPoint[1], this.startPoint[2],
+    // Right face
+    this.endPoint[0],  this.startPoint[1], this.endPoint[2],
+    this.endPoint[0],  this.endPoint[1],   this.endPoint[2],
+    this.endPoint[0],  this.endPoint[1],   this.startPoint[2],
+    this.endPoint[0],  this.startPoint[1], this.startPoint[2],
+    // Left face
+    this.startPoint[0],  this.startPoint[1], this.endPoint[2],
+    this.startPoint[0],  this.startPoint[1], this.startPoint[2],
+    this.startPoint[0],  this.endPoint[1],   this.startPoint[2],
+    this.startPoint[0],  this.endPoint[1],   this.endPoint[2],
+  ];
+  var vertexNormals = [
+  	// Front face
+  	 0.0,  0.0,  1.0,
+  	 0.0,  0.0,  1.0,
+  	 0.0,  0.0,  1.0,
+  	 0.0,  0.0,  1.0,
+  	// Back face
+  	 0.0,  0.0, -1.0,
+  	 0.0,  0.0, -1.0,
+  	 0.0,  0.0, -1.0,
+  	 0.0,  0.0, -1.0,
+  	// Top face
+  	 0.0,  1.0,  0.0,
+  	 0.0,  1.0,  0.0,
+  	 0.0,  1.0,  0.0,
+  	 0.0,  1.0,  0.0,
+  	// Bottom face
+  	 0.0, -1.0,  0.0,
+  	 0.0, -1.0,  0.0,
+  	 0.0, -1.0,  0.0,
+  	 0.0, -1.0,  0.0,
+  	// Right face
+  	 1.0,  0.0,  0.0,
+  	 1.0,  0.0,  0.0,
+  	 1.0,  0.0,  0.0,
+  	 1.0,  0.0,  0.0,
+  	// Left face
+  	-1.0,  0.0,  0.0,
+  	-1.0,  0.0,  0.0,
+  	-1.0,  0.0,  0.0,
+  	-1.0,  0.0,  0.0
+  ];
+  var textureCoords = [
+    // Front face
+    0.0, 0.0,
+    this.textureTile * lengthCoeff, 0.0,
+    this.textureTile * lengthCoeff, this.textureTile * heigthCoeff,
+    0.0, this.textureTile * heigthCoeff,
+    // Back face
+    this.textureTile * lengthCoeff, 0.0,
+    this.textureTile * lengthCoeff, this.textureTile * heigthCoeff,
+    0.0, this.textureTile * heigthCoeff,
+    0.0, 0.0,
+    // Top face
+    0.0, this.textureTile * widthCoeff,
+    0.0, 0.0,
+    this.textureTile * lengthCoeff, 0.0,
+    this.textureTile * lengthCoeff, this.textureTile * widthCoeff,
+    // Bottom face
+    this.textureTile * lengthCoeff, this.textureTile * widthCoeff,
+    0.0, this.textureTile * widthCoeff,
+    0.0, 0.0,
+    this.textureTile * lengthCoeff, 0.0,
+    // Right face
+    this.textureTile * widthCoeff, 0.0,
+    this.textureTile * widthCoeff, this.textureTile * heigthCoeff,
+    0.0, this.textureTile * heigthCoeff,
+    0.0, 0.0,
+    // Left face
+    0.0, 0.0,
+    this.textureTile * widthCoeff, 0.0,
+    this.textureTile * widthCoeff, this.textureTile * heigthCoeff,
+    0.0, this.textureTile * heigthCoeff,
+  ];
+  var vertexIndices = [
+    0, 1, 2,      0, 2, 3,    // Front face
+    4, 5, 6,      4, 6, 7,    // Back face
+    8, 9, 10,     8, 10, 11,  // Top face
+    12, 13, 14,   12, 14, 15, // Bottom face
+    16, 17, 18,   16, 18, 19, // Right face
+    20, 21, 22,   20, 22, 23  // Left face
+  ];
+
+  this.bindBuffers({
+    positionData: vertexPositions,
+    normalData: vertexNormals,
+    textureData: textureCoords,
+    indexData: vertexIndices
+  });
 }

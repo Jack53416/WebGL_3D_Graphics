@@ -1,6 +1,6 @@
 import * as world from './worldData.js';
 import {gl,shaderProgram} from './worldData.js';
-import {Model, Sphere} from './worldObjects.js';
+import {Model, Sphere, Cuboid} from './worldObjects.js';
 import {Camera} from './camera.js';
 
 var camera = new Camera();
@@ -15,13 +15,17 @@ function initBuffers(gl) {
 }
 
 var teapot;
+var floor;
 function initWorldObjects(){
-  var texture = initTexture(gl, "teapotTexture.jpg");
-  teapot = new Sphere(
-    30,
-    30,
-    2,
-  {texture: texture});
+  var texture = initTexture(gl, "bricks.jpg");
+  floor = new Cuboid(
+    vec3.fromValues(-40, -15, 30),
+    vec3.fromValues(40, -12, -30),
+    {
+      texture: texture,
+      textureTile: 8
+  });
+  teapot = new Model("teapot.json", {texture: initTexture(gl, "teapotTexture.jpg")});
 }
 function drawScene() {
   // tells webGl about size of the canvas
@@ -31,7 +35,7 @@ function drawScene() {
   // sets perspective projection, specifying vertical field of view to 45°,
   // passes the width to height ratio of the screen
   // and sets objects closer than 0.1 and further than 100 units as invisible
-  mat4.perspective(world.pMatrix, 45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0);
+  mat4.perspective(world.pMatrix, 45, gl.viewportWidth / gl.viewportHeight, 0.1, 200.0);
   // Initializes model-view matrix - a matrix that hold current position and rotation
   mat4.identity(world.mvMatrix);
   mat4.multiply(world.mvMatrix, camera.transformMatrix, world.mvMatrix);
@@ -75,6 +79,7 @@ function drawScene() {
     }
 	}
   teapot.draw();
+  floor.draw();
 }
 
 
@@ -84,7 +89,7 @@ function animate(){
 	var timeNow = new Date().getTime();
 	if (animate.lastTime != 0) {
 		var elapsed = timeNow - animate.lastTime;
-    teapot.rotate(0, 0.1 * elapsed);
+    //teapot.rotate(0, 0.1 * elapsed);
 	}
 	animate.lastTime = timeNow;
 }
