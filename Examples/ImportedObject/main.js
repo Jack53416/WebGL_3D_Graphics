@@ -1,6 +1,6 @@
 import * as world from './worldData.js';
 import {gl,shaderProgram} from './worldData.js';
-import {Sphere} from './worldObjects.js';
+import {Model, Sphere} from './worldObjects.js';
 import {Camera} from './camera.js';
 
 var camera = new Camera();
@@ -14,67 +14,20 @@ function initBuffers(gl) {
 // inside Sphere class
 }
 
-var spheres = [];
-var zoom = -20.0;
-
-function loadTeapot(){
-  var request = new XMLHttpRequest();
-  request.overrideMimeType("application/json");
-  request.open("GET", "Teapot.json");
-  request.onreadystatechange = function(){
-    if(request.readyState === 4){
-      handleLoadedTeapot(JSON.parse(request.responseText));
-    }
-  };
-  request.send();
-}
-
-var teapotVertexPositionBuffer;
-var teapotVertexNormalBuffer;
-var teapotVertexTextureCoordBuffer;
-var teapotVertexIndexBuffer;
-
-function handleLoadedTeapot(teapotData){
-  teapotVertexPositionBuffer = gl.createBuffer();
-  teapotVertexNormalBuffer = gl.createBuffer();
-  teapotVertexTextureCoordBuffer = gl.createBuffer();
-  teapotVertexIndexBuffer = gl.createBuffer();
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, teapotVertexPositionBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(teapotData.vertexPositions), gl.STATIC_DRAW);
-  teapotVertexPositionBuffer.itemSize = 3;
-  teapotVertexPositionBuffer.numItems = teapotData.vertexPositions.length / 3;
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, teapotVertexNormalBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(teapotData.vertexNormals), gl.STATIC_DRAW);
-  teapotVertexNormalBuffer.itemSize = 3;
-  teapotVertexNormalBuffer.numItems = teapotData.vertexNormals.length / 3;
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, teapotVertexTextureCoordBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(teapotData.vertexTextureCoords), gl.STATIC_DRAW);
-  teapotVertexTextureCoordBuffer.itemSize = 2;
-  teapotVertexTextureCoordBuffer.numItems = teapotData.vertexTextureCoords.length / 2;
-
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, teapotVertexIndexBuffer);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(teapotData.indices), gl.STATIC_DRAW);
-  teapotVertexIndexBuffer.itemSize = 1;
-  teapotVertexIndexBuffer.numItems = teapotData.indices.length;
-
-  document.getElementById("loadingtext").textContent = "";
-}
-var texture = null;
+var teapot;
 function initWorldObjects(){
-  loadTeapot();
-  texture = initTexture(gl, "teapotTexture.jpg");
+  var texture = initTexture(gl, "teapotTexture.jpg");
+  teapot = new Sphere(
+    30,
+    30,
+    2,
+  {texture: texture});
 }
 function drawScene() {
   // tells webGl about size of the canvas
   gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
   //cleares the canvas before drawing on it
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-  if(teapotVertexPositionBuffer == null || teapotVertexNormalBuffer == null)
-    return;
   // sets perspective projection, specifying vertical field of view to 45°,
   // passes the width to height ratio of the screen
   // and sets objects closer than 0.1 and further than 100 units as invisible
@@ -118,36 +71,22 @@ function drawScene() {
         parseFloat(document.getElementById("specularPointB").value)
       );
 
-      gl.uniform1f(
-        shaderProgram.materialShininessUniform,
-        parseFloat(document.getElementById("shininess").value)
-      );
+      teapot.shininess = parseFloat(document.getElementById("shininess").value);
     }
 	}
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.uniform1i(shaderProgram.samplerUniform, 0);
-  gl.bindBuffer(gl.ARRAY_BUFFER, teapotVertexPositionBuffer);
-  gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, teapotVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-  gl.bindBuffer(gl.ARRAY_BUFFER, teapotVertexTextureCoordBuffer);
-  gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, teapotVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
-  gl.bindBuffer(gl.ARRAY_BUFFER, teapotVertexNormalBuffer);
-  gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute, teapotVertexNormalBuffer.itemSize, gl.FLOAT, false, 0, 0);
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, teapotVertexIndexBuffer);
-  world.setMatrixUniforms();
-  gl.drawElements(gl.TRIANGLES, teapotVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-
-
+  teapot.draw();
 }
 
-var lastTime = 0;
+
+animate.lastTime = 0;
 
 function animate(){
 	var timeNow = new Date().getTime();
-	if (lastTime != 0) {
-		var elapsed = timeNow - lastTime;
+	if (animate.lastTime != 0) {
+		var elapsed = timeNow - animate.lastTime;
+    teapot.rotate(0, 0.1 * elapsed);
 	}
-	lastTime = timeNow;
+	animate.lastTime = timeNow;
 }
 
 function initTexture(gl, fileName){
