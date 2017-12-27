@@ -4,12 +4,16 @@ import * as world from './worldData.js';
 
 const effectiveFPMS = 60 / 1000;
 
-export function ComplexObject(objectFile){
+
+ModelGroup.prototype = Object.create(Model.prototype);
+ModelGroup.prototype.constructor = ModelGroup;
+
+export function ModelGroup(objectFile){
   var options = {};
-  this.posX = options.posX || 0.0;
-  this.posY = options.posY || 0.0;
-  this.posZ = options.posZ || 0.0;
-  this.rotationMatrix = mat4.create();
+  if(typeof arguments[1] === 'object'){
+    options = arguments[1];
+  }
+  Model.call(this, null, options);
   this.meshes = {};
 
   if(objectFile){
@@ -17,7 +21,7 @@ export function ComplexObject(objectFile){
   }
 }
 
-ComplexObject.prototype.loadFromFile = function(fileName, mimeType){
+ModelGroup.prototype.loadFromFile = function(fileName, mimeType){
   const reqTypeDone = 4;
   var self = this;
   var request = new XMLHttpRequest();
@@ -27,14 +31,14 @@ ComplexObject.prototype.loadFromFile = function(fileName, mimeType){
     if(request.readyState === reqTypeDone){
       var objectData = JSON.parse(request.responseText);
       for(const subModelName in objectData){
-        self.meshes[subModelName] = new Model(objectData[subModelName]);
+        self.meshes[subModelName] = new Model(objectData[subModelName], {texture: self.texture});
       }
     }
   };
   request.send();
 }
 
-ComplexObject.prototype.draw = function(){
+ModelGroup.prototype.draw = function(){
   for(const subModelName in this.meshes){
     this.meshes[subModelName].draw();
   }
@@ -62,6 +66,7 @@ export function Model(modelFile){
     this.loadFromFile(modelFile, "application/json");
   }
   else if(typeof modelFile === 'object'){
+    this.setPosition(modelFile.origin[0], modelFile.origin[1], modelFile.origin[2]);
     this.bindBuffers({
       positionData : modelFile.vertices,
       textureData : modelFile.textureCoords,
@@ -183,12 +188,12 @@ Model.prototype.setTexture = function(texture){
   this.texture = texture;
 }
 
-Model.prototype.rotate = function(angleX, angleY){
+Model.prototype.rotate = function(angleX, angleY, angleZ){
   var newRotationMatrix = mat4.create();
 
   mat4.rotate(newRotationMatrix, newRotationMatrix, glMatrix.toRadian(angleX), [0, 1, 0]);
   mat4.rotate(newRotationMatrix, newRotationMatrix, glMatrix.toRadian(angleY), [1, 0, 0]);
-
+  mat4.rotate(newRotationMatrix,newRotationMatrix, glMatrix.toRadian(angleZ), [0,0,1]);
   mat4.multiply(this.rotationMatrix, newRotationMatrix, this.rotationMatrix);
 }
 
