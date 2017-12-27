@@ -47,7 +47,7 @@ function handleKeyUp(event){
 	currentlyPressedKeys[event.keyCode] = false;
 }
 
-export function handleKeys(){
+export function handleKeys(hand){
 	//left arrow or a
 	if(currentlyPressedKeys[37] || currentlyPressedKeys[65])
 		camera.truck(-0.1);
@@ -72,6 +72,15 @@ export function handleKeys(){
   //c
   if(currentlyPressedKeys[67])
     camera.pan(1.0);
+//1
+  if(currentlyPressedKeys[49])
+  {
+    hand.meshes.finger1Base_Cube_009.rotate(1,0,0);
+  }
+
+  if(currentlyPressedKeys[50]){
+    hand.meshes.finger1Base_Cube_009.rotate(0,0,1);
+  }
 }
 
 function handleMouseDown(event){

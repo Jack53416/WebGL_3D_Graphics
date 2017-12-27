@@ -38,10 +38,23 @@ export function mvMatrixTranslate(translationVector){
   mat4.translate(mvMatrix, mvMatrix, translationVector);
 }
 
+export function initWorld(canvas, callback){
+	gl = initGL(canvas);
+	async.waterfall([
+		async.apply(loadShaders,[
+			{path: '/Shaders/fragmentGeneric.glsl', type: "fragment"},
+			{path: '/Shaders/vertexGeneric.glsl', type: "vertex"}
+		]),
+		createShaderProgram,
 
-export function initWorld(canvas){
-  gl = initGL(canvas);
-  shaderProgram = initShaders(gl);
+	], (err, result)=>{
+		if(err){
+			console.error(err);
+			alert(err);
+		}
+		shaderProgram = result;
+		callback(null);
+	});
 }
 
 
@@ -95,83 +108,80 @@ function validateNoneOfTheArgsAreUndefined(functionName, args) {
   }
 }
 
-/**
- * Searches through html page and creates either vertex or fragment shader, based on
- * the element's type. Then it passes it to WebGL to be compiled to run on graphic
- * card
- * @param  {[type]} gl gl context
- * @param  {[type]} id shader script's id
- * @return {glShader}  gl shader object
- */
-function getShader(gl, id) {
-  var shaderScript = document.getElementById(id);
-  if (!shaderScript) {
-    return null;
-  }
-  var str = "";
-  var k = shaderScript.firstChild;
-  while (k) {
-    if (k.nodeType == 3) {
-      str += k.textContent;
-    }
-    k = k.nextSibling;
-  }
-  var shader;
-  if (shaderScript.type == "x-shader/x-fragment") {
-    shader = gl.createShader(gl.FRAGMENT_SHADER);
-  }
-  else if (shaderScript.type == "x-shader/x-vertex") {
-    shader = gl.createShader(gl.VERTEX_SHADER);
-  }
-  else {
-    return null;
-  }
+function initShaders(){
+	async.waterfall([
+		async.apply(loadShaders,[
+			{path: '/Shaders/fragmentGeneric.glsl', type: "fragment"},
+			{path: '/Shaders/vertexGeneric.glsl', type: "vertex"}
+		]),
+		createShaderProgram,
 
-  gl.shaderSource(shader, str);
-  gl.compileShader(shader);
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    alert(gl.getShaderInfoLog(shader));
-    return null;
-  }
-  return shader;
+	], (err, result)=>{
+		if(err){
+			console.error(err);
+			alert(err);
+		}
+		shaderProgram = result;
+	});
 }
 
-/**
- * Initializes shaders, they are necessary in WebGL in order to get WebGL running
- * on the graphic cards and to apply model-view matrix and  projection matrix to
- * scene without having to move around every point and every vertex
- * in (relatively) slow JavaScript.
- * @param  {gl}  gl             WebGL context
- * @return {glShaderProgram}    shaderProgram running on graphic card
- */
-function initShaders(gl) {
-  var shaderProgram;
-  var fragmentShader = getShader(gl, "shader-fs");
-  var vertexShader = getShader(gl, "shader-vs");
+ function loadShaders(shaderFiles, callback){
+	async.mapLimit(shaderFiles, 5, async function(shaderFile){
+		const response = await fetch(shaderFile.path);
+		return response.text();
+	},
+	(err, result) =>{
+		if(err)
+			throw(err);
+		var shaders = [];
 
-  shaderProgram = gl.createProgram();
-  gl.attachShader(shaderProgram, vertexShader);
-  gl.attachShader(shaderProgram, fragmentShader);
-  gl.linkProgram(shaderProgram);
+		for(var [index, shaderFile] of shaderFiles.entries()){
+			var shader = null;
+			if(shaderFile.type === "fragment"){
+				shader = gl.createShader(gl.FRAGMENT_SHADER);
+			}
+			else if(shaderFile.type === "vertex"){
+				shader = gl.createShader(gl.VERTEX_SHADER);
+			}
+			else
+				return callback("Ivalid shader type");
 
-  if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-    alert("Could not initialise shaders");
-  }
+			gl.shaderSource(shader, result[index]);
+			gl.compileShader(shader);
+			if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+				let debugInfo = gl.getShaderInfoLog(shader);
+				return callback(shaderFile.path + " compile Error\n" + debugInfo);
+			}
+			shaders.push(shader);
+		}
+		return callback(null,shaders);
+	});
+}
 
-  gl.useProgram(shaderProgram);
-  shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
-  gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+function createShaderProgram(shaders, callback){
+	var shaderProgram = gl.createProgram();
+	for(var shader of shaders){
+		gl.attachShader(shaderProgram, shader);
+	}
+	gl.linkProgram(shaderProgram);
+	if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+		callback("Could not link shaders!");
+	}
 
-  shaderProgram.textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
-  gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
+	gl.useProgram(shaderProgram);
+	shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+	gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+
+	shaderProgram.textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
+	gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
 
 	shaderProgram.vertexNormalAttribute = gl.getAttribLocation(shaderProgram, "aVertexNormal");
 	gl.enableVertexAttribArray(shaderProgram.vertexNormalAttribute);
 
-  shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
-  shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+	shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
+	shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
 	shaderProgram.nMatrixUniform = gl.getUniformLocation(shaderProgram, "uNMatrix");
-  shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
+	shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
 	shaderProgram.ambientColorUniform = gl.getUniformLocation(shaderProgram, "uAmbientColor");
 	shaderProgram.useLightingUniform = gl.getUniformLocation(shaderProgram, "uUseLighting");
 	shaderProgram.pointLightingLocationUniform = gl.getUniformLocation(shaderProgram, "uPointLightingLocation");
@@ -180,5 +190,5 @@ function initShaders(gl) {
 	shaderProgram.useTexturesUniform = gl.getUniformLocation(shaderProgram, "uUseTextures");
 	shaderProgram.showSpecularHighlightsUniform = gl.getUniformLocation(shaderProgram, "uShowSpecularHighlights");
 	shaderProgram.materialShininessUniform = gl.getUniformLocation(shaderProgram, "uMaterialShininess");
-  return shaderProgram;
+	callback(null, shaderProgram);
 }

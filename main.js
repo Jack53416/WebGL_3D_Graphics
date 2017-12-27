@@ -1,11 +1,11 @@
 import * as world from './worldData.js';
 import {gl,shaderProgram} from './worldData.js';
-import {Model, Sphere, Cuboid, ComplexObject} from './worldObjects.js';
+import {Model, Sphere, Cuboid, ModelGroup} from './worldObjects.js';
 import * as events from './events.js';
 
 var worldObjects = [];
 
-function initWorldObjects(){
+function initWorldObjects(callback){
   var texture = initTexture(gl, "./Textures/bricks.jpg");
   var floor = new Cuboid(
     vec3.fromValues(-40, -15, 30),
@@ -14,9 +14,12 @@ function initWorldObjects(){
       texture: texture,
       textureTile: 8
   });
-  var teapot = new ComplexObject("./Models/cos.json", {texture: initTexture(gl, "./Textures/teapotTexture.jpg")});
+  var hand = new ModelGroup("./Models/hand.json", {texture: initTexture(gl, "./Textures/teapotTexture.jpg")});
+  console.log(hand)
   worldObjects.push(floor);
-  worldObjects.push(teapot);
+  worldObjects.push(hand);
+
+  callback(null);
 }
 
 function drawScene() {
@@ -125,26 +128,31 @@ function handleLoadedTexture(texture){
  * Calls the function to initalize webGl and shaders, start of an app
  */
 (function webGLStart() {
-  var canvas = document.getElementById("lesson01-canvas");
+  var canvas = document.getElementById("WebGLCanvas");
   var canvasBorder = canvas.getBoundingClientRect();
   canvas.width = canvasBorder.width;
   canvas.height = canvasBorder.height;
-	world.initWorld(canvas);
-	initWorldObjects();
-
-  // sets clear color of the canvas
-  gl.clearColor(0.0, 0.0, 0.0, 0.4);
-	events.bindEvents(canvas);
-
-  if(world.DEBUG)
-	 setTimeout(tick, 1000);
-  else
-    tick();
+  events.bindEvents(canvas);
+  async.series([
+    async.apply(world.initWorld, canvas),
+    initWorldObjects,
+  ],
+  (err, result) =>{
+    if(err){
+      return console.error(err);
+    }
+   gl.clearColor(0.0, 0.0, 0.0, 0.4);
+   if(world.DEBUG)
+     setTimeout(tick, 1000);
+    else
+      tick();
+  });
 })();
+
 function tick(){
 	if(!world.DEBUG)
 		requestAnimationFrame(tick);
 	drawScene();
 	animate();
-  events.handleKeys();
+  events.handleKeys(worldObjects[1]);
 }
