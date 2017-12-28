@@ -4,6 +4,48 @@ import * as world from './worldData.js';
 
 const effectiveFPMS = 60 / 1000;
 
+Hand.prototype = Object.create(ModelGroup.prototype);
+Hand.prototype.constructor = Hand;
+
+export function Hand(objectFile, config, callback){
+  var options = {};
+  var self = this;
+  if(typeof arguments[1] === 'object')
+    options = arguments[1];
+  this.prototype = Object.create(ModelGroup.prototype);
+  ModelGroup.call(this, objectFile, options);
+
+  ModelGroup.prototype.loadFromFile.call(this, function(){
+   self.fingers = [];
+   for(var i = 0; i < 5; ++i){
+     let index = i + 1;
+     let base = 'finger' + index + 'Base';
+     let middle = 'finger' + index + 'Middle';
+     let tip = 'finger' + index + 'Tip';
+     self.fingers.push({base: self.meshes[base], middle: self.meshes[middle], tip: self.meshes[tip]});
+   }
+
+   self.palm = self.meshes['palm'];
+   return callback(null);
+ });
+
+ this.renderFinger = function(finger){
+   world.mvPushMatrix();
+   finger.base.render();
+   finger.middle.render();
+   finger.tip.render();
+   world.mvPopMatrix();
+ }
+
+ this.draw = function(){
+   world.mvPushMatrix();
+   this.palm.render();
+   for(var finger of this.fingers){
+     this.renderFinger(finger);
+   }
+     world.mvPopMatrix();
+ }
+}
 
 ModelGroup.prototype = Object.create(Model.prototype);
 ModelGroup.prototype.constructor = ModelGroup;
@@ -16,26 +58,34 @@ export function ModelGroup(objectFile){
   Model.call(this, null, options);
   this.meshes = {};
 
-  if(objectFile){
-    this.loadFromFile(objectFile, "application/json");
+  if(!objectFile){
+    throw 'No object file provided';
   }
+  this.filePath = objectFile;
 }
 
-ModelGroup.prototype.loadFromFile = function(fileName, mimeType){
-  const reqTypeDone = 4;
+ ModelGroup.prototype.loadFromFile = function(cb){
   var self = this;
-  var request = new XMLHttpRequest();
-  request.overrideMimeType(mimeType);
-  request.open("GET", fileName);
-  request.onreadystatechange = function(){
-    if(request.readyState === reqTypeDone){
-      var objectData = JSON.parse(request.responseText);
+  async.waterfall([
+    async function(){
+      const response = await fetch(self.filePath);
+      return response.json();
+    },
+    function(objectData, callback){
+      if(typeof objectData !== 'object'){
+        return callback("file " + self.filePath + " is invalid!");
+      }
       for(const subModelName in objectData){
         self.meshes[subModelName] = new Model(objectData[subModelName], {texture: self.texture});
       }
+        return callback(null);
     }
-  };
-  request.send();
+  ], (err, result) => {
+    if(err)
+      return cb(err);
+
+      return cb(null);
+  });
 }
 
 ModelGroup.prototype.draw = function(){
@@ -151,6 +201,11 @@ Model.prototype.draw = function(){
   );
 
   world.mvPushMatrix();
+  this.render();
+  world.mvPopMatrix();
+}
+
+Model.prototype.render = function(){
   this.computeMvMatrix();
 
   gl.activeTexture(gl.TEXTURE0);
@@ -175,7 +230,6 @@ Model.prototype.draw = function(){
   world.setMatrixUniforms();
 
   gl.drawElements(gl.TRIANGLES, this.vertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-  world.mvPopMatrix();
 }
 
 Model.prototype.setPosition = function(posX, posY, posZ){

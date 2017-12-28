@@ -1,6 +1,6 @@
 
 export function Camera(){
-  this.eye = vec3.fromValues(0, 0, 40);
+  this.eye = vec3.fromValues(0, 0, 20);
   this.center = vec3.fromValues(0, 0, 0);
   this.upVector = vec3.fromValues(0, 1, 0);
   this.angleX = 0;

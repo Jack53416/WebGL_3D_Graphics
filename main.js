@@ -1,6 +1,6 @@
 import * as world from './worldData.js';
 import {gl,shaderProgram} from './worldData.js';
-import {Model, Sphere, Cuboid, ModelGroup} from './worldObjects.js';
+import {Model, Sphere, Cuboid, Hand} from './worldObjects.js';
 import * as events from './events.js';
 
 var worldObjects = [];
@@ -14,12 +14,16 @@ function initWorldObjects(callback){
       texture: texture,
       textureTile: 8
   });
-  var hand = new ModelGroup("./Models/hand.json", {texture: initTexture(gl, "./Textures/teapotTexture.jpg")});
-  console.log(hand)
-  worldObjects.push(floor);
-  worldObjects.push(hand);
+  var hand = new Hand("./Models/hand.json", {texture: initTexture(gl, "./Textures/teapotTexture.jpg")} , function(err){
+    console.log(hand)
+    worldObjects.push(floor);
+    worldObjects.push(hand);
+    if(err){
+      return callback(err);
+    }
+    return callback(null);
+  });
 
-  callback(null);
 }
 
 function drawScene() {

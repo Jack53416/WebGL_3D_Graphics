@@ -75,11 +75,25 @@ export function handleKeys(hand){
 //1
   if(currentlyPressedKeys[49])
   {
-    hand.meshes.finger1Base_Cube_009.rotate(1,0,0);
+    hand.meshes.finger2Base.rotate(0,0,1);
+    hand.meshes.finger2Middle.rotate(0,0,0.7);
+    hand.meshes.finger2Tip.rotate(0,0,1.2);
   }
 
   if(currentlyPressedKeys[50]){
-    hand.meshes.finger1Base_Cube_009.rotate(0,0,1);
+    hand.meshes.finger1Base.rotate(0,0,1);
+    hand.meshes.finger1Middle.rotate(0,0,0.7);
+    hand.meshes.finger1Tip.rotate(0,0,1.2);
+  }
+  if(currentlyPressedKeys[51]){
+    hand.meshes.finger3Base.rotate(0,0,1);
+    hand.meshes.finger3Middle.rotate(0,0,0.7);
+    hand.meshes.finger3Tip.rotate(0,0,1.2);
+  }
+  if(currentlyPressedKeys[52]){
+    hand.meshes.finger4Base.rotate(0,0,1);
+    hand.meshes.finger4Middle.rotate(0,0,0.7);
+    hand.meshes.finger4Tip.rotate(0,0,1.2);
   }
 }
 
