@@ -37,7 +37,7 @@ function drawScene() {
   gl.enable(gl.DEPTH_TEST);
   passLightingData(shaderProgram);
   for(var object of worldObjects){
-    object.draw();
+      object.draw();
   }
 }
 
@@ -132,10 +132,14 @@ function handleLoadedTexture(texture){
   var canvasBorder = canvas.getBoundingClientRect();
   canvas.width = canvasBorder.width;
   canvas.height = canvasBorder.height;
-  events.bindEvents(canvas);
-  async.series([
-    async.apply(world.initWorld, canvas),
+  world.initGL(canvas);
+  async.parallel([
+    world.initShaders,
     initWorldObjects,
+    function(callback){
+      events.bindEvents(canvas);
+      callback(null);
+    }
   ],
   (err, result) =>{
     if(err){

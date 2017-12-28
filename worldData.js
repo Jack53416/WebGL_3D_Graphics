@@ -38,49 +38,27 @@ export function mvMatrixTranslate(translationVector){
   mat4.translate(mvMatrix, mvMatrix, translationVector);
 }
 
-export function initWorld(canvas, callback){
-	gl = initGL(canvas);
-	async.waterfall([
-		async.apply(loadShaders,[
-			{path: '/Shaders/fragmentGeneric.glsl', type: "fragment"},
-			{path: '/Shaders/vertexGeneric.glsl', type: "vertex"}
-		]),
-		createShaderProgram,
-
-	], (err, result)=>{
-		if(err){
-			console.error(err);
-			alert(err);
-		}
-		shaderProgram = result;
-		callback(null);
-	});
-}
-
-
 /**
  * gets WebGL context
  * @param  {canvas} canvas canvas html5 object
- * @return {gl}            gl context
+ * @return  none
  */
-function initGL(canvas) {
-  var gl = null;
+export function initGL(canvas) {
+  var glContext = null;
   try {
-    gl = canvas.getContext("webgl");
+    glContext = canvas.getContext("webgl");
     if(DEBUG)
-      gl = WebGLDebugUtils.makeDebugContext(gl, throwOnGLError, logAndValidate);
-      gl.viewportWidth = canvas.width;
-      gl.viewportHeight = canvas.height;
-			console.log(canvas.width);
-			console.log(canvas.height);
+      glContext = WebGLDebugUtils.makeDebugContext(glContext, throwOnGLError, logAndValidate);
+      glContext.viewportWidth = canvas.width;
+      glContext.viewportHeight = canvas.height;
   } catch (ex) {
     console.log(ex);
   }
-  if (!gl) {
+  if (!glContext) {
     alert("Could not initialise WebGL");
   }
   console.log("gl init done");
-  return gl;
+  gl = glContext;
 }
 
 //Debug related functions
@@ -108,7 +86,7 @@ function validateNoneOfTheArgsAreUndefined(functionName, args) {
   }
 }
 
-function initShaders(){
+export function initShaders(callback){
 	async.waterfall([
 		async.apply(loadShaders,[
 			{path: '/Shaders/fragmentGeneric.glsl', type: "fragment"},
@@ -120,8 +98,10 @@ function initShaders(){
 		if(err){
 			console.error(err);
 			alert(err);
+			return callback(err);
 		}
 		shaderProgram = result;
+		return callback(null);
 	});
 }
 
