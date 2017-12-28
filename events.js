@@ -1,14 +1,38 @@
-import {Camera} from "./camera.js";
 import {gl} from "./worldData.js";
 
-export var camera = new Camera();
-var currentlyPressedKeys = {};
+
+var keyEvents = {
+  eventObjects: []
+};
 var mouseDown = false;
 var lastMouseX = 0;
 var lastMouseY = 0;
 
+Array.prototype.containsObject = function(obj) {
+    var i;
+    for (i = 0; i < this.length; i++) {
+        if (this[i] === obj) {
+            return i;
+        }
+    }
 
-export function bindEvents(canvas){
+    return -1;
+}
+
+keyEvents.addEventObject = function(object){
+  var index = null;
+  if(object){
+    index = keyEvents.eventObjects.containsObject(object);
+    if(index < 0){
+      keyEvents.eventObjects.push(object);
+      index = keyEvents.eventObjects.length - 1;
+    }
+  }
+
+  return index;
+}
+
+export function bindCanvasEvents(canvas){
   document.onkeydown = handleKeyDown;
 	document.onkeyup = handleKeyUp;
 
@@ -35,43 +59,31 @@ export function bindEvents(canvas){
 }
 
 function handleKeyDown(event){
-	currentlyPressedKeys[event.keyCode] = true;
-	/*if(String.fromCharCode(event.keyCode) == "F"){
-		filter++;
-		filter %= 3;
-		console.log("filter: " + filter);
-	}*/
+	if(keyEvents[event.key])
+    {
+      var keyEvent = keyEvents[event.key];
+      keyEvent.handler.call(keyEvents.eventObjects[keyEvent.objIndex],keyEvent.params);
+    }
 }
 
 function handleKeyUp(event){
-	currentlyPressedKeys[event.keyCode] = false;
+	//currentlyPressedKeys[event.keyCode] = false;
 }
 
+export function addControlSchema(object, controls){
+  var index = keyEvents.addEventObject(object);
+
+  for(var control of controls){
+    keyEvents[control.key] = {handler: control.handler, params: control.parameters, objIndex: index};
+  }
+}
+
+export function bindMouseEvents(object, mouseMoveHandler, mouseZoomHandler){
+  var index = keyEvents.addEventObject(object);
+  keyEvents.mouseMove = {handler: mouseMoveHandler, objIndex: index};
+  keyEvents.mouseZoom = {handler: mouseZoomHandler, objIndex: index};
+}
 export function handleKeys(hand){
-	//left arrow or a
-	if(currentlyPressedKeys[37] || currentlyPressedKeys[65])
-		camera.truck(-0.1);
-	//right arrow or d
-	if(currentlyPressedKeys[39] || currentlyPressedKeys[68])
-		camera.truck(+0.1);
-	//up arrow or w
-	if(currentlyPressedKeys[38] || currentlyPressedKeys[87] )
-		camera.pedestal(0.1)
-	//down arrow or s
-	if(currentlyPressedKeys[40] || currentlyPressedKeys[83])
-		camera.pedestal(-0.1);
-    //q
-  if(currentlyPressedKeys[81])
-    camera.tilt(-1.0);
-  //e
-  if(currentlyPressedKeys[69])
-    camera.tilt(1.0);
-  //z
-  if(currentlyPressedKeys[90])
-    camera.pan(-1.0);
-  //c
-  if(currentlyPressedKeys[67])
-    camera.pan(1.0);
 //1
   if(currentlyPressedKeys[49])
   {
@@ -116,7 +128,11 @@ function handleMouseMove(event){
 
   var deltaX = newX - lastMouseX;
   var deltaY = newY - lastMouseY;
-  camera.arcCrane(deltaX / 2, deltaY / 2);
+
+  if(keyEvents.mouseMove){
+    let keyEvent = keyEvents.mouseMove;
+    keyEvent.handler.call(keyEvents.eventObjects[keyEvent.objIndex], deltaX / 2, deltaY /2);
+  }
   lastMouseX = newX;
   lastMouseY = newY;
 }
@@ -125,7 +141,10 @@ function MouseWheelHandler(e) {
   // cross-browser wheel delta
   var e = window.event || e; // old IE support
   var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
-  camera.zoom(-delta);
+  if(keyEvents.mouseZoom){
+    let keyEvent = keyEvents.mouseZoom;
+    keyEvent.handler.call(keyEvents.eventObjects[keyEvent.objIndex], delta);
+  }
 
   return false;
 }

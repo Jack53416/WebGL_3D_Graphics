@@ -2,8 +2,10 @@ import * as world from './worldData.js';
 import {gl,shaderProgram} from './worldData.js';
 import {Model, Sphere, Cuboid, Hand} from './worldObjects.js';
 import * as events from './events.js';
+import {Camera} from "./camera.js";
 
 var worldObjects = [];
+var camera = new Camera();
 
 function initWorldObjects(callback){
   var texture = initTexture(gl, "./Textures/bricks.jpg");
@@ -37,7 +39,7 @@ function drawScene() {
   mat4.perspective(world.pMatrix, 45, gl.viewportWidth / gl.viewportHeight, 0.1, 200.0);
   // Initializes model-view matrix - a matrix that hold current position and rotation
   mat4.identity(world.mvMatrix);
-  mat4.multiply(world.mvMatrix, events.camera.transformMatrix, world.mvMatrix);
+  mat4.multiply(world.mvMatrix, camera.transformMatrix, world.mvMatrix);
   gl.enable(gl.DEPTH_TEST);
   passLightingData(shaderProgram);
   for(var object of worldObjects){
@@ -141,7 +143,18 @@ function handleLoadedTexture(texture){
     world.initShaders,
     initWorldObjects,
     function(callback){
-      events.bindEvents(canvas);
+      events.bindCanvasEvents(canvas);
+      events.addControlSchema(camera,[
+        {key: 'a', handler: camera.truck, parameters: [-0.1]},
+        {key: 'd', handler: camera.truck, parameters: [0.1]},
+        {key: 'w', handler: camera.pedestal, parameters: [0.1]},
+        {key: 's', handler: camera.pedestal, parameters: [-0.1]},
+        {key: 'q', handler: camera.tilt, parameters: [-1]},
+        {key: 'e', handler: camera.tilt, parameters: [1]},
+        {key: 'z', handler: camera.pan, parameters: [1]},
+        {key: 'c', handler: camera.pan, parameters: [-1]}
+      ]);
+      events.bindMouseEvents(camera, camera.arcCrane, camera.zoom);
       callback(null);
     }
   ],
@@ -162,5 +175,5 @@ function tick(){
 		requestAnimationFrame(tick);
 	drawScene();
 	animate();
-  events.handleKeys(worldObjects[1]);
+  //events.handleKeys(worldObjects[1]);
 }
