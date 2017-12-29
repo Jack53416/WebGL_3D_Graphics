@@ -26,50 +26,50 @@ function initWorldObjects(callback){
   });
   console.log(light);
   document.getElementById("lightPositionX").oninput = (event) =>{
-    light.model.posX = event.srcElement.value;
+    light.model.posX = event.hasOwnProperty('srcElement') ? event.srcElement.value : event.target.value;
     light.pushLightLocation();
   };
   document.getElementById("lightPositionY").oninput = (event) =>{
-    light.model.posY = event.srcElement.value;
+    light.model.posY = event.hasOwnProperty('srcElement') ? event.srcElement.value : event.target.value;
     light.pushLightLocation();
   };
   document.getElementById("lightPositionZ").oninput = (event) =>{
-    light.model.posZ = event.srcElement.value;
+    light.model.posZ = event.hasOwnProperty('srcElement') ? event.srcElement.value : event.target.value;
     light.pushLightLocation();
   };
 
   document.getElementById("diffusePointR").oninput = (event) =>{
-    light.lightColor.r = event.srcElement.value;
+    light.lightColor.r = event.hasOwnProperty('srcElement') ? event.srcElement.value : event.target.value;
     light.pushLightColor();
   }
 
   document.getElementById("diffusePointG").oninput = (event) =>{
-    light.lightColor.g = event.srcElement.value;
+    light.lightColor.g = event.hasOwnProperty('srcElement') ? event.srcElement.value : event.target.value;
     light.pushLightColor();
   }
 
   document.getElementById("diffusePointB").oninput = (event) =>{
-    light.lightColor.b = event.srcElement.value;
+    light.lightColor.b = event.hasOwnProperty('srcElement') ? event.srcElement.value : event.target.value;
     light.pushLightColor();
   }
 
   document.getElementById("specularPointR").oninput = (event) =>{
-    light.specularColor.r = event.srcElement.value;
+    light.specularColor.r = event.hasOwnProperty('srcElement') ? event.srcElement.value : event.target.value;
     light.pushSpecularColor();
   }
 
   document.getElementById("specularPointG").oninput = (event) =>{
-    light.specularColor.g = event.srcElement.value;
+    light.specularColor.g = event.hasOwnProperty('srcElement') ? event.srcElement.value : event.target.value;
     light.pushSpecularColor();
   }
 
   document.getElementById("specularPointB").oninput = (event) =>{
-    light.specularColor.b = event.srcElement.value;
+    light.specularColor.b = event.hasOwnProperty('srcElement') ? event.srcElement.value : event.target.value;
     light.pushSpecularColor();
   }
 
   document.getElementById("specular").onchange = (event) =>{
-    light.useSpecularLighting = event.srcElement.checked;
+    light.useSpecularLighting = event.hasOwnProperty('srcElement') ? event.srcElement.checked : event.target.checked;
     light.pushSpecularFlag();
   }
 
@@ -189,7 +189,7 @@ function handleLoadedTexture(texture){
     function(callback){
       events.bindCanvasEvents(canvas);
       events.addControlSchema(camera,[
-        {key: 'a', handler: camera.truck, parameters: [-0.1]},
+        {key: 'a', handler: camera.truck, parameters: [-0.1], animated: true},
         {key: 'd', handler: camera.truck, parameters: [0.1]},
         {key: 'w', handler: camera.pedestal, parameters: [0.1]},
         {key: 's', handler: camera.pedestal, parameters: [-0.1]},
