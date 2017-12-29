@@ -170,5 +170,6 @@ function createShaderProgram(shaders, callback){
 	shaderProgram.useTexturesUniform = gl.getUniformLocation(shaderProgram, "uUseTextures");
 	shaderProgram.showSpecularHighlightsUniform = gl.getUniformLocation(shaderProgram, "uShowSpecularHighlights");
 	shaderProgram.materialShininessUniform = gl.getUniformLocation(shaderProgram, "uMaterialShininess");
+	shaderProgram.isLightObjectUniform = gl.getUniformLocation(shaderProgram, "uIsLightObject");
 	callback(null, shaderProgram);
 }

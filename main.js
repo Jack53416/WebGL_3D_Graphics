@@ -1,12 +1,12 @@
 import * as world from './worldData.js';
 import {gl,shaderProgram} from './worldData.js';
-import {Model, Sphere, Cuboid, Hand} from './worldObjects.js';
+import {Model, Sphere, Cuboid, Hand, PointLight} from './worldObjects.js';
 import * as events from './events.js';
 import {Camera} from "./camera.js";
 
 var worldObjects = [];
 var camera = new Camera();
-
+var light;
 function initWorldObjects(callback){
   var texture = initTexture(gl, "./Textures/bricks.jpg");
   var floor = new Cuboid(
@@ -16,10 +16,68 @@ function initWorldObjects(callback){
       texture: texture,
       textureTile: 8
   });
+
+  light = new PointLight({
+    posX: parseFloat(document.getElementById("lightPositionX").value),
+    posY: parseFloat(document.getElementById("lightPositionY").value),
+    posZ: parseFloat(document.getElementById("lightPositionZ").value),
+    texture: initTexture(gl, "./Textures/lightpaper.png"),
+    shininess: 10
+  });
+  console.log(light);
+  document.getElementById("lightPositionX").oninput = (event) =>{
+    light.model.posX = event.srcElement.value;
+    light.pushLightLocation();
+  };
+  document.getElementById("lightPositionY").oninput = (event) =>{
+    light.model.posY = event.srcElement.value;
+    light.pushLightLocation();
+  };
+  document.getElementById("lightPositionZ").oninput = (event) =>{
+    light.model.posZ = event.srcElement.value;
+    light.pushLightLocation();
+  };
+
+  document.getElementById("diffusePointR").oninput = (event) =>{
+    light.lightColor.r = event.srcElement.value;
+    light.pushLightColor();
+  }
+
+  document.getElementById("diffusePointG").oninput = (event) =>{
+    light.lightColor.g = event.srcElement.value;
+    light.pushLightColor();
+  }
+
+  document.getElementById("diffusePointB").oninput = (event) =>{
+    light.lightColor.b = event.srcElement.value;
+    light.pushLightColor();
+  }
+
+  document.getElementById("specularPointR").oninput = (event) =>{
+    light.specularColor.r = event.srcElement.value;
+    light.pushSpecularColor();
+  }
+
+  document.getElementById("specularPointG").oninput = (event) =>{
+    light.specularColor.g = event.srcElement.value;
+    light.pushSpecularColor();
+  }
+
+  document.getElementById("specularPointB").oninput = (event) =>{
+    light.specularColor.b = event.srcElement.value;
+    light.pushSpecularColor();
+  }
+
+  document.getElementById("specular").onchange = (event) =>{
+    light.useSpecularLighting = event.srcElement.checked;
+    light.pushSpecularFlag();
+  }
+
   var hand = new Hand("./Models/hand.json", {texture: initTexture(gl, "./Textures/teapotTexture.jpg")} , function(err){
     console.log(hand)
     worldObjects.push(floor);
     worldObjects.push(hand);
+    worldObjects.push(light);
     if(err){
       return callback(err);
     }
@@ -57,11 +115,9 @@ function drawScene() {
 
 function passLightingData(shaderProgram){
   var lighting = document.getElementById("lighting").checked;
-  var specularHighlights = document.getElementById("specular").checked;
   var useTextures = document.getElementById("textures").checked;
 
   gl.uniform1i(shaderProgram.useLightingUniform, lighting);
-  gl.uniform1i(shaderProgram.showSpecularHighlightsUniform, specularHighlights);
   gl.uniform1i(shaderProgram.useTexturesUniform, useTextures);
 	if(lighting){
 		gl.uniform3f(
@@ -70,29 +126,9 @@ function passLightingData(shaderProgram){
 			parseFloat(document.getElementById("ambientG").value),
 			parseFloat(document.getElementById("ambientB").value)
 		);
-
-    gl.uniform3f(
-      shaderProgram.pointLightingLocationUniform,
-      parseFloat(document.getElementById("lightPositionX").value),
-      parseFloat(document.getElementById("lightPositionY").value),
-      parseFloat(document.getElementById("lightPositionZ").value),
-    );
-    gl.uniform3f(
-      shaderProgram.pointLightingDiffuseColorUniform,
-      parseFloat(document.getElementById("diffusePointR").value),
-      parseFloat(document.getElementById("diffusePointG").value),
-      parseFloat(document.getElementById("diffusePointB").value)
-    );
-    if(specularHighlights){
-      gl.uniform3f(
-        shaderProgram.pointLightingSpecularColorUniform,
-        parseFloat(document.getElementById("specularPointR").value),
-        parseFloat(document.getElementById("specularPointG").value),
-        parseFloat(document.getElementById("specularPointB").value)
-      );
       worldObjects[1].shininess = parseFloat(document.getElementById("shininess").value);
     }
-	}
+
 }
 
 function animate(){
@@ -171,6 +207,9 @@ function handleLoadedTexture(texture){
       return console.error(err);
     }
    gl.clearColor(0.0, 0.0, 0.0, 0.4);
+   light.pushLightColor();
+   light.pushSpecularColor();
+   light.pushSpecularFlag();
    if(world.DEBUG)
      setTimeout(tick, 1000);
     else

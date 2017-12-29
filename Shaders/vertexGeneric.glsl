@@ -9,13 +9,16 @@ uniform mat3 uNMatrix;
 varying vec2 vTextureCoord;
 varying vec3 vTransformedNormal;
 varying vec4 vPosition;
+varying vec4 vLightLocation;
 
+uniform vec3 uPointLightingLocation;
 //Shader is called for every vertex passed to it by aVertexPosition, by vertexPositionAttribute
 //in the drawScen. It simply multiplies its postion by projection and model view matrices
 //and pushes out the result as the final vertex position
 void main(void) {
     vPosition = uMVMatrix * vec4(aVertexPosition, 1.0);
     gl_Position = uPMatrix * vPosition;
+    vLightLocation = uMVMatrix * vec4(uPointLightingLocation, 1.0);
     //accpets texture cooridanets as varting variable and passes it straight to
     //fragment shader, than shader interpolates texture linearly between vertices specified
     //earlier

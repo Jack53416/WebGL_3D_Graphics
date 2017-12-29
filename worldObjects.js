@@ -7,6 +7,55 @@ const effectiveFPMS = 60 / 1000;
 Hand.prototype = Object.create(ModelGroup.prototype);
 Hand.prototype.constructor = Hand;
 
+export function PointLight(options){
+  this.model = new Sphere(30,30,0.5,options);
+  this.lightColor = options.ligthColor || {r: 0.8, g: 0.8, b: 0.8};
+  this.specularColor = options.specularColor || {r: 0.8, g: 0.8, b: 0.8};
+  this.useSpecularLighting = options.useSpecularLighting || true;
+
+  this.pushLightColor = function(){
+    gl.uniform3f(
+      shaderProgram.pointLightingDiffuseColorUniform,
+      this.lightColor.r,
+      this.lightColor.b,
+      this.lightColor.g
+    );
+  }
+
+  this.pushSpecularColor = function(){
+    if(!this.useSpecularLighting)
+      return;
+    gl.uniform3f(
+      shaderProgram.pointLightingSpecularColorUniform,
+      this.specularColor.r,
+      this.specularColor.g,
+      this.specularColor.b
+    );
+  }
+
+  this.pushLightLocation = function(){
+    gl.uniform3f(
+      shaderProgram.pointLightingLocationUniform,
+      this.model.posX,
+      this.model.posY,
+      this.model.posZ
+    );
+  }
+
+  this.pushSpecularFlag = function(){
+    gl.uniform1i(
+      shaderProgram.showSpecularHighlightsUniform,
+      this.useSpecularLighting
+    );
+  }
+
+  this.draw = function(){
+    gl.uniform1i(shaderProgram.isLightObjectUniform, true);
+    this.model.draw();
+    gl.uniform1i(shaderProgram.isLightObjectUniform, false);
+  }
+}
+
 export function Hand(objectFile, config, callback){
   var options = {};
   var self = this;
