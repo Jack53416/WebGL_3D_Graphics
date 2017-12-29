@@ -1,0 +1,5 @@
+Examples/
+obj_parser/*.json
+!obj_parser/package.json
+*.mtl
+*.obj
