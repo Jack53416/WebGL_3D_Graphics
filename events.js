@@ -4,6 +4,8 @@ import {gl} from "./worldData.js";
 var keyEvents = {
   eventObjects: []
 };
+var eventFifo = {};
+
 var mouseDown = false;
 var lastMouseX = 0;
 var lastMouseY = 0;
@@ -59,22 +61,30 @@ export function bindCanvasEvents(canvas){
 }
 
 function handleKeyDown(event){
-	if(keyEvents[event.key])
-    {
-      var keyEvent = keyEvents[event.key];
-      keyEvent.handler.call(keyEvents.eventObjects[keyEvent.objIndex],keyEvent.params);
-    }
+	if(!keyEvents[event.key])
+    return;
+  var keyEvent = keyEvents[event.key];
+  if(!keyEvent.animated)
+    keyEvent.handler.apply(keyEvents.eventObjects[keyEvent.objIndex],keyEvent.parameters);
+  else{
+     if(!eventFifo.hasOwnProperty(event.key)){
+       eventFifo[event.key] = keyEvent;
+     }
+  }
 }
 
 function handleKeyUp(event){
-	//currentlyPressedKeys[event.keyCode] = false;
+  if(eventFifo.hasOwnProperty(event.key)){
+    delete eventFifo[event.key];
+  }
 }
 
 export function addControlSchema(object, controls){
   var index = keyEvents.addEventObject(object);
 
   for(var control of controls){
-    keyEvents[control.key] = {handler: control.handler, params: control.parameters, objIndex: index};
+    control.objIndex = index;
+    keyEvents[control.key] = control;
   }
 }
 
@@ -83,29 +93,10 @@ export function bindMouseEvents(object, mouseMoveHandler, mouseZoomHandler){
   keyEvents.mouseMove = {handler: mouseMoveHandler, objIndex: index};
   keyEvents.mouseZoom = {handler: mouseZoomHandler, objIndex: index};
 }
-export function handleKeys(hand){
-//1
-  if(currentlyPressedKeys[49])
-  {
-    hand.meshes.finger2Base.rotate(0,0,1);
-    hand.meshes.finger2Middle.rotate(0,0,0.7);
-    hand.meshes.finger2Tip.rotate(0,0,1.2);
-  }
-
-  if(currentlyPressedKeys[50]){
-    hand.meshes.finger1Base.rotate(0,0,1);
-    hand.meshes.finger1Middle.rotate(0,0,0.7);
-    hand.meshes.finger1Tip.rotate(0,0,1.2);
-  }
-  if(currentlyPressedKeys[51]){
-    hand.meshes.finger3Base.rotate(0,0,1);
-    hand.meshes.finger3Middle.rotate(0,0,0.7);
-    hand.meshes.finger3Tip.rotate(0,0,1.2);
-  }
-  if(currentlyPressedKeys[52]){
-    hand.meshes.finger4Base.rotate(0,0,1);
-    hand.meshes.finger4Middle.rotate(0,0,0.7);
-    hand.meshes.finger4Tip.rotate(0,0,1.2);
+export function handleKeys(){
+  for(var key in eventFifo){
+    let keyEvent = eventFifo[key];
+    keyEvent.handler.apply(keyEvents.eventObjects[keyEvent.objIndex],keyEvent.parameters);
   }
 }
 

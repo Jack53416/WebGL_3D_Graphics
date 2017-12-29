@@ -26,6 +26,14 @@ function initWorldObjects(callback){
     return callback(null);
   });
 
+  events.addControlSchema(hand, [
+    {key: '1', handler: hand.bendFinger, parameters: [0, 4], animated: true},
+    {key: '2', handler: hand.bendFinger, parameters: [1, 4], animated: true},
+    {key: '3', handler: hand.bendFinger, parameters: [2, 4], animated: true},
+    {key: '4', handler: hand.bendFinger, parameters: [3, 4], animated: true},
+    {key: '5', handler: hand.bendFinger, parameters: [4, 4], animated: true},
+  ]);
+
 }
 
 function drawScene() {
@@ -175,5 +183,5 @@ function tick(){
 		requestAnimationFrame(tick);
 	drawScene();
 	animate();
-  //events.handleKeys(worldObjects[1]);
+  events.handleKeys();
 }

@@ -22,7 +22,7 @@ export function Hand(objectFile, config, callback){
      let base = 'finger' + index + 'Base';
      let middle = 'finger' + index + 'Middle';
      let tip = 'finger' + index + 'Tip';
-     self.fingers.push({base: self.meshes[base], middle: self.meshes[middle], tip: self.meshes[tip]});
+     self.fingers.push({base: self.meshes[base], middle: self.meshes[middle], tip: self.meshes[tip], rotationAngle: 0});
    }
 
    self.palm = self.meshes['palm'];
@@ -43,8 +43,30 @@ export function Hand(objectFile, config, callback){
    for(var finger of this.fingers){
      this.renderFinger(finger);
    }
-     world.mvPopMatrix();
+    world.mvPopMatrix();
  }
+
+   this.bendFinger = function(fingerIndex, speedFactor){
+     if(fingerIndex > this.fingers.length - 1){
+       return;
+     }
+     if(this.fingers[fingerIndex].rotationAngle > 75)
+      return;
+
+     var rotationVector = [0, 0 ,1];
+     if(fingerIndex === 4){
+       this.fingers[fingerIndex].rotationAngle += 1.3*speedFactor;
+       this.fingers[fingerIndex].base.rotate(0.6 * speedFactor, [0,  0.5, 1]);
+       this.fingers[fingerIndex].middle.rotate(2 * speedFactor, [0,1,0]);
+       this.fingers[fingerIndex].tip.rotate(0.2 * speedFactor, [0,1,0]);
+     }
+     else{
+     this.fingers[fingerIndex].rotationAngle += speedFactor;
+     this.fingers[fingerIndex].base.rotate(speedFactor, rotationVector);
+     this.fingers[fingerIndex].middle.rotate(0.7 * speedFactor, rotationVector);
+     this.fingers[fingerIndex].tip.rotate(1.2 * speedFactor, rotationVector);
+   }
+  }
 }
 
 ModelGroup.prototype = Object.create(Model.prototype);
@@ -242,12 +264,9 @@ Model.prototype.setTexture = function(texture){
   this.texture = texture;
 }
 
-Model.prototype.rotate = function(angleX, angleY, angleZ){
+Model.prototype.rotate = function(angle, rotationAxis){
   var newRotationMatrix = mat4.create();
-
-  mat4.rotate(newRotationMatrix, newRotationMatrix, glMatrix.toRadian(angleX), [0, 1, 0]);
-  mat4.rotate(newRotationMatrix, newRotationMatrix, glMatrix.toRadian(angleY), [1, 0, 0]);
-  mat4.rotate(newRotationMatrix,newRotationMatrix, glMatrix.toRadian(angleZ), [0,0,1]);
+  mat4.rotate(newRotationMatrix, newRotationMatrix, glMatrix.toRadian(angle), rotationAxis);
   mat4.multiply(this.rotationMatrix, newRotationMatrix, this.rotationMatrix);
 }
 
