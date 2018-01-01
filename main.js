@@ -90,6 +90,11 @@ function initWorldObjects(callback){
     {key: '3', handler: hand.bendFinger, parameters: [2, 4], animated: true},
     {key: '4', handler: hand.bendFinger, parameters: [3, 4], animated: true},
     {key: '5', handler: hand.bendFinger, parameters: [4, 4], animated: true},
+    {key: '6', handler: hand.bendFinger, parameters: [0, -4], animated: true},
+    {key: '7', handler: hand.bendFinger, parameters: [1, -4], animated: true},
+    {key: '8', handler: hand.bendFinger, parameters: [2, -4], animated: true},
+    {key: '9', handler: hand.bendFinger, parameters: [3, -4], animated: true},
+    {key: '0', handler: hand.bendFinger, parameters: [4, -4], animated: true},
   ]);
 
 }

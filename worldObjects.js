@@ -99,7 +99,8 @@ export function Hand(objectFile, config, callback){
      if(fingerIndex > this.fingers.length - 1){
        return;
      }
-     if(this.fingers[fingerIndex].rotationAngle > 75)
+     if((this.fingers[fingerIndex].rotationAngle > 75 && speedFactor > 0) ||
+        (this.fingers[fingerIndex].rotationAngle <= 0 && speedFactor < 0))
       return;
 
      var rotationVector = [0, 0 ,1];
