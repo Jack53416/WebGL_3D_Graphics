@@ -1,12 +1,6 @@
 import  {gl, shaderProgram} from './worldData.js';
 import * as world from './worldData.js';
 
-
-const effectiveFPMS = 60 / 1000;
-
-Hand.prototype = Object.create(ModelGroup.prototype);
-Hand.prototype.constructor = Hand;
-
 export function PointLight(options){
   this.model = new Sphere(30,30,0.5,options);
   this.lightColor = options.ligthColor || {r: 0.8, g: 0.8, b: 0.8};
@@ -56,13 +50,17 @@ export function PointLight(options){
   }
 }
 
+Hand.prototype = Object.create(Model.prototype);
+Hand.constructor = Hand;
+
 export function Hand(objectFile, config, callback){
   var options = {};
   var self = this;
   if(typeof arguments[1] === 'object')
     options = arguments[1];
-  this.prototype = Object.create(ModelGroup.prototype);
   ModelGroup.call(this, objectFile, options);
+  this.animated = options.animated || true;
+  this.animationSpeed = options.animationSpeed || 4;
 
   ModelGroup.prototype.loadFromFile.call(this, function(){
    self.fingers = [];
@@ -75,6 +73,8 @@ export function Hand(objectFile, config, callback){
    }
 
    self.palm = self.meshes['palm'];
+   self.posY = self.palm.posY;
+   self.posZ = self.palm.posZ;
    return callback(null);
  });
 
@@ -86,8 +86,13 @@ export function Hand(objectFile, config, callback){
    world.mvPopMatrix();
  }
 
+ this.rotateAlongBase = function(angle, rotationAxis){
+   this.palm.rotate(angle, rotationAxis);
+ }
+
  this.draw = function(){
    world.mvPushMatrix();
+   this.computeMvMatrix();
    this.palm.render();
    for(var finger of this.fingers){
      this.renderFinger(finger);
@@ -118,10 +123,6 @@ export function Hand(objectFile, config, callback){
    }
   }
 }
-
-ModelGroup.prototype = Object.create(Model.prototype);
-ModelGroup.prototype.constructor = ModelGroup;
-
 export function ModelGroup(objectFile){
   var options = {};
   if(typeof arguments[1] === 'object'){
@@ -135,6 +136,10 @@ export function ModelGroup(objectFile){
   }
   this.filePath = objectFile;
 }
+
+
+ModelGroup.prototype = Object.create(Model.prototype);
+ModelGroup.prototype.constructor = ModelGroup;
 
  ModelGroup.prototype.loadFromFile = function(cb){
   var self = this;

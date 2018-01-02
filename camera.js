@@ -51,8 +51,15 @@ Camera.prototype.truck = function(distance){
 
 Camera.prototype.zoom = function(distance){
   var zCameraAxis = this.getZaxis();
+  var cameraDistance = vec3.create();
+  var newEye = vec3.create();
+
   vec3.scale(zCameraAxis, zCameraAxis, distance);
-  vec3.add(this.eye, this.eye, zCameraAxis);
+  vec3.add(newEye, this.eye, zCameraAxis);
+  vec3.subtract(cameraDistance, this.center, newEye);
+  if(vec3.length(cameraDistance) < 1)
+    return;
+  this.eye = newEye;
 //  vec3.add(this.center, this.center, zCameraAxis);
   this.updateTransform();
 }
@@ -63,7 +70,6 @@ Camera.prototype.pedestal = function(distance){
   var yCameraAxis = vec3.create();
   vec3.cross(yCameraAxis, zCameraAxis, xCameraAxis);
   vec3.normalize(yCameraAxis, yCameraAxis);
-  console.log(yCameraAxis);
   vec3.scale(yCameraAxis, yCameraAxis, distance);
   vec3.add(this.eye, this.eye, yCameraAxis);
   vec3.add(this.center, this.center, yCameraAxis);

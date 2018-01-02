@@ -1,12 +1,14 @@
 import * as world from './worldData.js';
 import {gl,shaderProgram} from './worldData.js';
-import {Model, Sphere, Cuboid, Hand, PointLight} from './worldObjects.js';
+import {Model, Sphere, Cuboid, Hand, PointLight, ModelGroup} from './worldObjects.js';
 import * as events from './events.js';
 import {Camera} from "./camera.js";
 
 var worldObjects = [];
 var camera = new Camera();
 var light;
+var hand;
+
 function initWorldObjects(callback){
   var texture = initTexture(gl, "./Textures/bricks.jpg");
   var floor = new Cuboid(
@@ -24,57 +26,12 @@ function initWorldObjects(callback){
     texture: initTexture(gl, "./Textures/lightpaper.png"),
     shininess: 10
   });
-  console.log(light);
-  document.getElementById("lightPositionX").oninput = (event) =>{
-    light.model.posX = event.hasOwnProperty('srcElement') ? event.srcElement.value : event.target.value;
-    light.pushLightLocation();
-  };
-  document.getElementById("lightPositionY").oninput = (event) =>{
-    light.model.posY = event.hasOwnProperty('srcElement') ? event.srcElement.value : event.target.value;
-    light.pushLightLocation();
-  };
-  document.getElementById("lightPositionZ").oninput = (event) =>{
-    light.model.posZ = event.hasOwnProperty('srcElement') ? event.srcElement.value : event.target.value;
-    light.pushLightLocation();
-  };
+  events.bindLightEvents(light);
 
-  document.getElementById("diffusePointR").oninput = (event) =>{
-    light.lightColor.r = event.hasOwnProperty('srcElement') ? event.srcElement.value : event.target.value;
-    light.pushLightColor();
-  }
-
-  document.getElementById("diffusePointG").oninput = (event) =>{
-    light.lightColor.g = event.hasOwnProperty('srcElement') ? event.srcElement.value : event.target.value;
-    light.pushLightColor();
-  }
-
-  document.getElementById("diffusePointB").oninput = (event) =>{
-    light.lightColor.b = event.hasOwnProperty('srcElement') ? event.srcElement.value : event.target.value;
-    light.pushLightColor();
-  }
-
-  document.getElementById("specularPointR").oninput = (event) =>{
-    light.specularColor.r = event.hasOwnProperty('srcElement') ? event.srcElement.value : event.target.value;
-    light.pushSpecularColor();
-  }
-
-  document.getElementById("specularPointG").oninput = (event) =>{
-    light.specularColor.g = event.hasOwnProperty('srcElement') ? event.srcElement.value : event.target.value;
-    light.pushSpecularColor();
-  }
-
-  document.getElementById("specularPointB").oninput = (event) =>{
-    light.specularColor.b = event.hasOwnProperty('srcElement') ? event.srcElement.value : event.target.value;
-    light.pushSpecularColor();
-  }
-
-  document.getElementById("specular").onchange = (event) =>{
-    light.useSpecularLighting = event.hasOwnProperty('srcElement') ? event.srcElement.checked : event.target.checked;
-    light.pushSpecularFlag();
-  }
-
-  var hand = new Hand("./Models/hand.json", {texture: initTexture(gl, "./Textures/teapotTexture.jpg")} , function(err){
+  hand = new Hand("./Models/hand.json", {texture: initTexture(gl, "./Textures/teapotTexture.jpg")} , function(err){
     console.log(hand)
+    console.log(ModelGroup.prototype);
+    console.log(Sphere.prototype);
     worldObjects.push(floor);
     worldObjects.push(hand);
     worldObjects.push(light);
@@ -84,17 +41,39 @@ function initWorldObjects(callback){
     return callback(null);
   });
 
+  document.getElementById("animationSpeed").oninput = (event) =>{
+    hand.animationSpeed = event.hasOwnProperty('srcElement') ? Number(event.srcElement.value) : Number(event.target.value);
+    events.editEventsArguments([
+      {key: '1', parameters: [0, hand.animationSpeed]},
+      {key: '2', parameters: [1, hand.animationSpeed]},
+      {key: '3', parameters: [2, hand.animationSpeed]},
+      {key: '4', parameters: [3, hand.animationSpeed]},
+      {key: '5', parameters: [4, hand.animationSpeed]},
+      {key: '6', parameters: [0, -hand.animationSpeed]},
+      {key: '7', parameters: [1, -hand.animationSpeed]},
+      {key: '8', parameters: [2, -hand.animationSpeed]},
+      {key: '9', parameters: [3, -hand.animationSpeed]},
+      {key: '0', parameters: [4, -hand.animationSpeed]}
+    ]);
+  }
+  document.getElementById("animate").onchange = (event) => {
+    hand.animated =  event.hasOwnProperty('srcElement') ? event.srcElement.checked : event.target.checked;
+  }
+
   events.addControlSchema(hand, [
-    {key: '1', handler: hand.bendFinger, parameters: [0, 4], animated: true},
-    {key: '2', handler: hand.bendFinger, parameters: [1, 4], animated: true},
-    {key: '3', handler: hand.bendFinger, parameters: [2, 4], animated: true},
-    {key: '4', handler: hand.bendFinger, parameters: [3, 4], animated: true},
-    {key: '5', handler: hand.bendFinger, parameters: [4, 4], animated: true},
-    {key: '6', handler: hand.bendFinger, parameters: [0, -4], animated: true},
-    {key: '7', handler: hand.bendFinger, parameters: [1, -4], animated: true},
-    {key: '8', handler: hand.bendFinger, parameters: [2, -4], animated: true},
-    {key: '9', handler: hand.bendFinger, parameters: [3, -4], animated: true},
-    {key: '0', handler: hand.bendFinger, parameters: [4, -4], animated: true},
+    {key: '1', handler: hand.bendFinger, parameters: [0, hand.animationSpeed], animated: true},
+    {key: '2', handler: hand.bendFinger, parameters: [1, hand.animationSpeed], animated: true},
+    {key: '3', handler: hand.bendFinger, parameters: [2, hand.animationSpeed], animated: true},
+    {key: '4', handler: hand.bendFinger, parameters: [3, hand.animationSpeed], animated: true},
+    {key: '5', handler: hand.bendFinger, parameters: [4, hand.animationSpeed], animated: true},
+    {key: '6', handler: hand.bendFinger, parameters: [0, -hand.animationSpeed], animated: true},
+    {key: '7', handler: hand.bendFinger, parameters: [1, -hand.animationSpeed], animated: true},
+    {key: '8', handler: hand.bendFinger, parameters: [2, -hand.animationSpeed], animated: true},
+    {key: '9', handler: hand.bendFinger, parameters: [3, -hand.animationSpeed], animated: true},
+    {key: '0', handler: hand.bendFinger, parameters: [4, -hand.animationSpeed], animated: true},
+    {key: 'k', handler: hand.rotateAlongBase, parameters: [1, [1,0,0]], animated: true},
+    {key: 'l', handler: hand.rotateAlongBase, parameters: [1, [0,1,0]], animated: true},
+    {key: 'o', handler: hand.rotateAlongBase, parameters: [1, [0,0,1]], animated: true}
   ]);
 
 }
@@ -111,6 +90,7 @@ function drawScene() {
   // Initializes model-view matrix - a matrix that hold current position and rotation
   mat4.identity(world.mvMatrix);
   mat4.multiply(world.mvMatrix, camera.transformMatrix, world.mvMatrix);
+  gl.uniformMatrix4fv(shaderProgram.cameraMatrixUniform, false, world.mvMatrix);
   gl.enable(gl.DEPTH_TEST);
   passLightingData(shaderProgram);
   for(var object of worldObjects){
@@ -131,16 +111,17 @@ function passLightingData(shaderProgram){
 			parseFloat(document.getElementById("ambientG").value),
 			parseFloat(document.getElementById("ambientB").value)
 		);
-      worldObjects[1].shininess = parseFloat(document.getElementById("shininess").value);
-    }
+  }
 
 }
 
+animate.lastTime = 0;
 function animate(){
 	var timeNow = new Date().getTime();
 	if (animate.lastTime != 0) {
 		var elapsed = timeNow - animate.lastTime;
-    //teapot.rotate(0, 0.1 * elapsed);
+    if(hand.animated)
+      hand.rotate(0.05 * elapsed, [1,0,0]);
 	}
 	animate.lastTime = timeNow;
 }

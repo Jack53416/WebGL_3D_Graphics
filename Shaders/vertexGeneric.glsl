@@ -6,6 +6,9 @@ attribute vec2 aTextureCoord;
 uniform mat4 uMVMatrix;
 uniform mat4 uPMatrix;
 uniform mat3 uNMatrix;
+
+uniform mat4 uCameraMatrix;
+
 varying vec2 vTextureCoord;
 varying vec3 vTransformedNormal;
 varying vec4 vPosition;
@@ -17,11 +20,11 @@ uniform vec3 uPointLightingLocation;
 //and pushes out the result as the final vertex position
 void main(void) {
     vPosition = uMVMatrix * vec4(aVertexPosition, 1.0);
-    gl_Position = uPMatrix * vPosition;
-    vLightLocation = uMVMatrix * vec4(uPointLightingLocation, 1.0);
+    vLightLocation = uCameraMatrix * vec4(uPointLightingLocation, 1.0);
     //accpets texture cooridanets as varting variable and passes it straight to
     //fragment shader, than shader interpolates texture linearly between vertices specified
     //earlier
     vTextureCoord = aTextureCoord;
     vTransformedNormal = uNMatrix * aVertexNormal;
+    gl_Position = uPMatrix * vPosition;
 }

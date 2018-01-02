@@ -1,7 +1,7 @@
 import {gl} from "./worldData.js";
 
 
-var keyEvents = {
+export var keyEvents = {
   eventObjects: []
 };
 var eventFifo = {};
@@ -60,6 +60,56 @@ export function bindCanvasEvents(canvas){
   document.onmousemove = handleMouseMove;
 }
 
+export function bindLightEvents(light){
+  document.getElementById("lightPositionX").oninput = (event) =>{
+    light.model.posX = event.hasOwnProperty('srcElement') ? event.srcElement.value : event.target.value;
+    light.pushLightLocation();
+  };
+  document.getElementById("lightPositionY").oninput = (event) =>{
+    light.model.posY = event.hasOwnProperty('srcElement') ? event.srcElement.value : event.target.value;
+    light.pushLightLocation();
+  };
+  document.getElementById("lightPositionZ").oninput = (event) =>{
+    light.model.posZ = event.hasOwnProperty('srcElement') ? event.srcElement.value : event.target.value;
+    light.pushLightLocation();
+  };
+
+  document.getElementById("diffusePointR").oninput = (event) =>{
+    light.lightColor.r = event.hasOwnProperty('srcElement') ? event.srcElement.value : event.target.value;
+    light.pushLightColor();
+  }
+
+  document.getElementById("diffusePointG").oninput = (event) =>{
+    light.lightColor.g = event.hasOwnProperty('srcElement') ? event.srcElement.value : event.target.value;
+    light.pushLightColor();
+  }
+
+  document.getElementById("diffusePointB").oninput = (event) =>{
+    light.lightColor.b = event.hasOwnProperty('srcElement') ? event.srcElement.value : event.target.value;
+    light.pushLightColor();
+  }
+
+  document.getElementById("specularPointR").oninput = (event) =>{
+    light.specularColor.r = event.hasOwnProperty('srcElement') ? event.srcElement.value : event.target.value;
+    light.pushSpecularColor();
+  }
+
+  document.getElementById("specularPointG").oninput = (event) =>{
+    light.specularColor.g = event.hasOwnProperty('srcElement') ? event.srcElement.value : event.target.value;
+    light.pushSpecularColor();
+  }
+
+  document.getElementById("specularPointB").oninput = (event) =>{
+    light.specularColor.b = event.hasOwnProperty('srcElement') ? event.srcElement.value : event.target.value;
+    light.pushSpecularColor();
+  }
+
+  document.getElementById("specular").onchange = (event) =>{
+    light.useSpecularLighting = event.hasOwnProperty('srcElement') ? event.srcElement.checked : event.target.checked;
+    light.pushSpecularFlag();
+  }
+}
+
 function handleKeyDown(event){
 	if(!keyEvents[event.key])
     return;
@@ -88,11 +138,20 @@ export function addControlSchema(object, controls){
   }
 }
 
+export function editEventsArguments(newEvents){
+  for(let keyEvent of newEvents){
+    if(keyEvents.hasOwnProperty(keyEvent.key)){
+      keyEvents[keyEvent.key].parameters = keyEvent.parameters;
+    }
+  }
+}
+
 export function bindMouseEvents(object, mouseMoveHandler, mouseZoomHandler){
   var index = keyEvents.addEventObject(object);
   keyEvents.mouseMove = {handler: mouseMoveHandler, objIndex: index};
   keyEvents.mouseZoom = {handler: mouseZoomHandler, objIndex: index};
 }
+
 export function handleKeys(){
   for(var key in eventFifo){
     let keyEvent = eventFifo[key];
