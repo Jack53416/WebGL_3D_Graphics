@@ -71,9 +71,12 @@ function initWorldObjects(callback){
     {key: '8', handler: hand.bendFinger, parameters: [2, -hand.animationSpeed], animated: true},
     {key: '9', handler: hand.bendFinger, parameters: [3, -hand.animationSpeed], animated: true},
     {key: '0', handler: hand.bendFinger, parameters: [4, -hand.animationSpeed], animated: true},
-    {key: 'k', handler: hand.rotateAlongBase, parameters: [1, [1,0,0]], animated: true},
-    {key: 'l', handler: hand.rotateAlongBase, parameters: [1, [0,1,0]], animated: true},
-    {key: 'o', handler: hand.rotateAlongBase, parameters: [1, [0,0,1]], animated: true}
+    {key: 'k', handler: hand.rotate, parameters: [1, [1,0,0]], animated: true},
+    {key: 'l', handler: hand.rotate, parameters: [-1, [1,0,0]], animated: true},
+    {key: 'o', handler: hand.rotate, parameters: [1, [0,0,1]], animated: true},
+    {key: 'p', handler: hand.rotate, parameters: [-1, [0,0,1]], animated: true},
+    {key: 'n', handler: hand.rotate, parameters: [1, [0,1,0]], animated: true},
+    {key: 'm', handler: hand.rotate, parameters: [-1, [0,1,0]], animated: true}
   ]);
 
 }

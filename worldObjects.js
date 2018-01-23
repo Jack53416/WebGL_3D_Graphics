@@ -91,6 +91,10 @@ export function Hand(objectFile, config, callback){
  }
 
  this.draw = function(){
+   gl.uniform1f(
+     shaderProgram.materialShininessUniform,
+     this.shininess
+   );
    world.mvPushMatrix();
    this.computeMvMatrix();
    this.palm.render();
@@ -123,6 +127,7 @@ export function Hand(objectFile, config, callback){
    }
   }
 }
+
 export function ModelGroup(objectFile){
   var options = {};
   if(typeof arguments[1] === 'object'){
